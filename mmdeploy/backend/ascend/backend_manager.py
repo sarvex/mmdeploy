@@ -49,12 +49,11 @@ class AscendManager(BaseBackendManager):
         """Get the version of the backend."""
         if not cls.is_available():
             return 'None'
-        else:
-            import pkg_resources
-            try:
-                return pkg_resources.get_distribution('acl').version
-            except Exception:
-                return 'None'
+        import pkg_resources
+        try:
+            return pkg_resources.get_distribution('acl').version
+        except Exception:
+            return 'None'
 
     @classmethod
     def to_backend(cls,
@@ -83,9 +82,7 @@ class AscendManager(BaseBackendManager):
 
         om_files = []
         for model_id, onnx_path in enumerate(ir_files):
-            om_path = osp.splitext(onnx_path)[0] + '.om'
+            om_path = f'{osp.splitext(onnx_path)[0]}.om'
             from_onnx(onnx_path, work_dir, model_inputs[model_id])
             om_files.append(om_path)
-        backend_files = om_files
-
-        return backend_files
+        return om_files

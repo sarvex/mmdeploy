@@ -72,8 +72,7 @@ def torch2onnx(img: Any,
     input_metas = {'data_samples': data_samples, 'mode': 'predict'}
 
     # export to onnx
-    context_info = dict()
-    context_info['deploy_cfg'] = deploy_cfg
+    context_info = {'deploy_cfg': deploy_cfg}
     output_prefix = osp.join(work_dir,
                              osp.splitext(osp.basename(save_file))[0])
     backend = get_backend(deploy_cfg).value

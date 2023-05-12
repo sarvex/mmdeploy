@@ -50,8 +50,7 @@ def parse_requirements(fname='requirements.txt', with_version=True):
         if line.startswith('-r '):
             # Allow specifying requirements in other files
             target = line.split(' ')[1]
-            for info in parse_require_file(target):
-                yield info
+            yield from parse_require_file(target)
         else:
             info = {'line': line}
             if line.startswith('-e '):
@@ -80,25 +79,24 @@ def parse_requirements(fname='requirements.txt', with_version=True):
 
     def parse_require_file(fpath):
         with open(fpath, 'r') as f:
-            for line in f.readlines():
+            for line in f:
                 line = line.strip()
                 if line and not line.startswith('#'):
-                    for info in parse_line(line):
-                        yield info
+                    yield from parse_line(line)
 
     def gen_packages_items():
-        if exists(require_fpath):
-            for info in parse_require_file(require_fpath):
-                parts = [info['package']]
-                if with_version and 'version' in info:
-                    parts.extend(info['version'])
-                if not sys.version.startswith('3.4'):
-                    # apparently package_deps are broken in 3.4
-                    platform_deps = info.get('platform_deps')
-                    if platform_deps is not None:
-                        parts.append(';' + platform_deps)
-                item = ''.join(parts)
-                yield item
+        if not exists(require_fpath):
+            return
+        for info in parse_require_file(require_fpath):
+            parts = [info['package']]
+            if with_version and 'version' in info:
+                parts.extend(info['version'])
+            if not sys.version.startswith('3.4'):
+                # apparently package_deps are broken in 3.4
+                platform_deps = info.get('platform_deps')
+                if platform_deps is not None:
+                    parts.append(f';{platform_deps}')
+            yield ''.join(parts)
 
     packages = list(gen_packages_items())
     return packages
@@ -106,8 +104,6 @@ def parse_requirements(fname='requirements.txt', with_version=True):
 
 def get_extensions():
     extensions = []
-    ext_name = 'mmdeploy.backend.torchscript.ts_optimizer'
-
     if EXT_TYPE == 'torch':
         import glob
         import platform
@@ -160,6 +156,8 @@ def get_extensions():
         # argument
         if 'nvcc' in extra_compile_args and platform.system() != 'Windows':
             extra_compile_args['nvcc'] += ['-std=c++14']
+
+        ext_name = 'mmdeploy.backend.torchscript.ts_optimizer'
 
         ext_ops = extension(
             name=ext_name,

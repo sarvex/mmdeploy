@@ -29,14 +29,16 @@ def instance_norm(g, input, num_groups, weight, bias, eps, cudnn_enabled):
     # instance norm computation and reshape
     weight_ = g.op(
         'Constant',
-        value_t=torch.tensor(
-            [1.] * num_groups).type('torch.' + input.type().scalarType() +
-                                    'Tensor'))
+        value_t=torch.tensor([1.0] * num_groups).type(
+            f'torch.{input.type().scalarType()}Tensor'
+        ),
+    )
     bias_ = g.op(
         'Constant',
-        value_t=torch.tensor(
-            [0.] * num_groups).type('torch.' + input.type().scalarType() +
-                                    'Tensor'))
+        value_t=torch.tensor([0.0] * num_groups).type(
+            f'torch.{input.type().scalarType()}Tensor'
+        ),
+    )
 
     norm_reshaped = g.op(
         'mmdeploy::TRTInstanceNormalization',
@@ -47,12 +49,14 @@ def instance_norm(g, input, num_groups, weight, bias, eps, cudnn_enabled):
     norm = g.op('Reshape', norm_reshaped, g.op('Shape', input))
 
     if weight is None or weight.node().mustBeNone():
-        weight_value = torch.tensor(
-            [1.]).type('torch.' + input.type().scalarType() + 'Tensor')
+        weight_value = torch.tensor([1.0]).type(
+            f'torch.{input.type().scalarType()}Tensor'
+        )
         weight = g.op('Constant', value_t=weight_value)
     if bias is None or bias.node().mustBeNone():
-        bias_value = torch.tensor(
-            [0.]).type('torch.' + input.type().scalarType() + 'Tensor')
+        bias_value = torch.tensor([0.0]).type(
+            f'torch.{input.type().scalarType()}Tensor'
+        )
         bias = g.op('Constant', value_t=bias_value)
 
     # Norm has shape [N, C, *] so we reshape weight and bias to [C, *]

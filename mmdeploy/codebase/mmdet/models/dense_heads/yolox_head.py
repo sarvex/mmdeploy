@@ -173,8 +173,7 @@ def yolox_head__predict_by_feat__ncnn(
     from mmdeploy.codebase.mmdet.ops import ncnn_detection_output_forward
     from mmdeploy.utils import get_root_logger
     from mmdeploy.utils.config_utils import is_dynamic_shape
-    dynamic_flag = is_dynamic_shape(ctx.cfg)
-    if dynamic_flag:
+    if dynamic_flag := is_dynamic_shape(ctx.cfg):
         logger = get_root_logger()
         logger.warning('YOLOX does not support dynamic shape with ncnn.')
     img_height = int(batch_img_metas[0]['img_shape'][0])
@@ -241,9 +240,14 @@ def yolox_head__predict_by_feat__ncnn(
     keep_top_k = cfg.get('max_per_img', post_params.keep_top_k)
 
     vars = torch.tensor([1, 1, 1, 1], dtype=torch.float32)
-    output__ncnn = ncnn_detection_output_forward(
-        batch_mlvl_bboxes, batch_mlvl_scores, batch_mlvl_priors,
-        score_threshold, iou_threshold, pre_top_k, keep_top_k,
+    return ncnn_detection_output_forward(
+        batch_mlvl_bboxes,
+        batch_mlvl_scores,
+        batch_mlvl_priors,
+        score_threshold,
+        iou_threshold,
+        pre_top_k,
+        keep_top_k,
         self.num_classes + 1,
-        vars.cpu().detach().numpy())
-    return output__ncnn
+        vars.cpu().detach().numpy(),
+    )

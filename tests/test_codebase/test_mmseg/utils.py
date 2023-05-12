@@ -21,7 +21,7 @@ def generate_datasample(h, w):
 
 
 def generate_mmseg_deploy_config(backend='onnxruntime'):
-    deploy_cfg = mmengine.Config(
+    return mmengine.Config(
         dict(
             backend_config=dict(type=backend),
             codebase_config=dict(type='mmseg', task='Segmentation'),
@@ -32,8 +32,10 @@ def generate_mmseg_deploy_config(backend='onnxruntime'):
                 opset_version=11,
                 input_shape=None,
                 input_names=['inputs'],
-                output_names=['output'])))
-    return deploy_cfg
+                output_names=['output'],
+            ),
+        )
+    )
 
 
 def generate_mmseg_task_processor(model_cfg=None, deploy_cfg=None):
@@ -42,5 +44,4 @@ def generate_mmseg_task_processor(model_cfg=None, deploy_cfg=None):
     if deploy_cfg is None:
         deploy_cfg = generate_mmseg_deploy_config()
     model_cfg, deploy_cfg = load_config(model_cfg, deploy_cfg)
-    task_processor = build_task_processor(model_cfg, deploy_cfg, 'cpu')
-    return task_processor
+    return build_task_processor(model_cfg, deploy_cfg, 'cpu')

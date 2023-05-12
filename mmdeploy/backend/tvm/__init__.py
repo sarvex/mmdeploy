@@ -15,9 +15,9 @@ def get_library_ext() -> str:
         str: The extension name
     """
     platform = sys.platform.lower()
-    if platform == 'win32' or platform == 'cygwin':
+    if platform in ['win32', 'cygwin']:
         return '.dll'
-    elif platform == 'linux' or platform == 'darwin' or platform == 'freebsd':
+    elif platform in ['linux', 'darwin', 'freebsd']:
         return '.so'
 
 

@@ -43,8 +43,7 @@ def get_output_model_file(onnx_path: str,
         work_dir = osp.dirname(onnx_path)
     mkdir_or_exist(osp.abspath(work_dir))
     file_name = osp.splitext(osp.split(onnx_path)[1])[0]
-    save_dlc = osp.join(work_dir, file_name + '.dlc')
-    return save_dlc
+    return osp.join(work_dir, f'{file_name}.dlc')
 
 
 def from_onnx(onnx_model: Union[onnx.ModelProto, str],
@@ -70,7 +69,7 @@ def from_onnx(onnx_model: Union[onnx.ModelProto, str],
     else:
         onnx_path = onnx_model
 
-    save_dlc = output_file_prefix + '.dlc'
+    save_dlc = f'{output_file_prefix}.dlc'
 
     onnx2dlc = get_onnx2dlc_path()
     ret_code = call(

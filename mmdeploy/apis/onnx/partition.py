@@ -88,10 +88,10 @@ def extract_partition(model: Union[str, onnx.ModelProto],
                         new_name = get_new_name(
                             attr, mark_name=s, name_map=start_name_map)
                         rename_value(model, name, new_name)
-                        if not any([
-                                v_info.name == new_name
-                                for v_info in model.graph.value_info
-                        ]):
+                        if all(
+                            v_info.name != new_name
+                            for v_info in model.graph.value_info
+                        ):
                             new_val_info = onnx.helper.make_tensor_value_info(
                                 new_name, attr['dtype'], attr['shape'])
                             model.graph.value_info.append(new_val_info)
@@ -114,10 +114,10 @@ def extract_partition(model: Union[str, onnx.ModelProto],
                         new_name = get_new_name(
                             attr, mark_name=e, name_map=end_name_map)
                         rename_value(model, name, new_name)
-                        if not any([
-                                v_info.name == new_name
-                                for v_info in model.graph.value_info
-                        ]):
+                        if all(
+                            v_info.name != new_name
+                            for v_info in model.graph.value_info
+                        ):
                             new_val_info = onnx.helper.make_tensor_value_info(
                                 new_name, attr['dtype'], attr['shape'])
                             model.graph.value_info.append(new_val_info)
@@ -168,9 +168,11 @@ def extract_partition(model: Union[str, onnx.ModelProto],
 
     # eliminate 0-batch dimension, dirty workaround for two-stage detectors
     for input in extracted_model.graph.input:
-        if input.name in inputs:
-            if input.type.tensor_type.shape.dim[0].dim_value == 0:
-                input.type.tensor_type.shape.dim[0].dim_value = 1
+        if (
+            input.name in inputs
+            and input.type.tensor_type.shape.dim[0].dim_value == 0
+        ):
+            input.type.tensor_type.shape.dim[0].dim_value = 1
 
     # eliminate duplicated value_info for inputs
     success = True

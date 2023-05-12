@@ -98,11 +98,9 @@ def get_new_name(attrs: Dict[str, str],
     Returns:
         str: The new node name.
     """
-    if 'name' in attrs:
-        new_name = attrs['name']
-    else:
-        new_name = '_'.join((attrs['func'], attrs['type'], str(attrs['id'])))
-
+    new_name = attrs.get(
+        'name', '_'.join((attrs['func'], attrs['type'], str(attrs['id'])))
+    )
     if name_map is not None:
         if new_name in name_map:
             return name_map[new_name]
@@ -135,10 +133,10 @@ def rename_value(model: onnx.ModelProto, old_name: str, new_name: str):
     for v in model.graph.value_info:
         if v.name == old_name:
             v.name = new_name
-    for i, input in enumerate(model.graph.input):
+    for input in model.graph.input:
         if input.name == old_name:
             input.name = new_name
-    for i, output in enumerate(model.graph.output):
+    for output in model.graph.output:
         if output.name == old_name:
             output.name = new_name
 

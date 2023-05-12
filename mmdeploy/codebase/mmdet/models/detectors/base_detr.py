@@ -20,9 +20,9 @@ def __predict_impl(self, batch_inputs, data_samples, rescale):
     """
     img_feats = self.extract_feat(batch_inputs)
     head_inputs_dict = self.forward_transformer(img_feats, data_samples)
-    results_list = self.bbox_head.predict(
-        **head_inputs_dict, rescale=rescale, batch_data_samples=data_samples)
-    return results_list
+    return self.bbox_head.predict(
+        **head_inputs_dict, rescale=rescale, batch_data_samples=data_samples
+    )
 
 
 @torch.fx.wrap

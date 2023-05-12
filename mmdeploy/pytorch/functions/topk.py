@@ -55,8 +55,7 @@ def topk__tensorrt(input: torch.Tensor,
     if dim is None:
         dim = int(input.ndim - 1)
     size = input.shape[dim]
-    if k > size:
-        k = size
+    k = min(k, size)
     if not isinstance(k, int):
         k = int(k)
     if k > TENSORRT_MAX_TOPK:

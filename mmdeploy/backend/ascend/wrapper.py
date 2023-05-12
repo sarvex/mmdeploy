@@ -238,9 +238,7 @@ class Context:
                 ret = acl.init()
                 if ret == 0:
                     Context.owned_acl = True
-                elif ret == 100002:  # ACL_ERROR_REPEAT_INITIALIZE
-                    pass
-                else:
+                elif ret != 100002:
                     _check(ret, 'acl.init')
             Context.ref_count += 1
         else:
@@ -257,9 +255,7 @@ class Context:
             ret = acl.finalize()
             if ret == 0:
                 Context.owned_acl = False
-            elif ret == 100037:  # ACL_ERROR_REPEAT_FINALIZE
-                pass
-            else:
+            elif ret != 100037:
                 _check(ret, 'acl.finalize')
         self._active = False
 
@@ -442,8 +438,7 @@ class AscendWrapper(BaseWrapper):
 
         self._reshape_fn(input_shapes)
 
-        dimses = self._model_desc.get_current_ouptut_dims()
-        return dimses
+        return self._model_desc.get_current_ouptut_dims()
 
     def _reshape_static(self, input_shapes):
         """Do nothing.
@@ -504,7 +499,7 @@ class AscendWrapper(BaseWrapper):
 
         if size is None:
             raise RuntimeError('Can\'t determine dynamic HW')
-        if not list(size) in self._dynamic_hw:
+        if list(size) not in self._dynamic_hw:
             raise RuntimeError(
                 f'size {size} is not supported. ({self._dynamic_hw})')
         height, width = size

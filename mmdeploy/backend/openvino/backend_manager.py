@@ -42,21 +42,18 @@ class OpenVINOManager(BaseBackendManager):
             bool: True if backend package is installed.
         """
         import importlib
-        ret = importlib.util.find_spec('openvino') is not None
-
-        return ret
+        return importlib.util.find_spec('openvino') is not None
 
     @classmethod
     def get_version(cls) -> str:
         """Get the version of the backend."""
         if not cls.is_available():
             return 'None'
-        else:
-            import pkg_resources
-            try:
-                return pkg_resources.get_distribution('openvino').version
-            except Exception:
-                return 'None'
+        import pkg_resources
+        try:
+            return pkg_resources.get_distribution('openvino').version
+        except Exception:
+            return 'None'
 
     @classmethod
     def to_backend(cls,

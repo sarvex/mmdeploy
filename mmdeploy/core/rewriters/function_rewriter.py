@@ -47,9 +47,6 @@ def _replace_all_obj(obj: Any,
             for k, v in ref.items():
                 if id(v) == obj_id and k not in ignore_keys:
                     ref[k] = new_obj
-        else:
-            # TODO: check if we can replace tuple
-            pass
 
 
 def _set_func(origin_func_path: str,
@@ -69,7 +66,7 @@ def _set_func(origin_func_path: str,
     split_path = origin_func_path.split('.')
     for i in range(len(split_path), 0, -1):
         try:
-            exec('import {}'.format('.'.join(split_path[:i])))
+            exec(f"import {'.'.join(split_path[:i])}")
             break
         except Exception:
             continue
@@ -99,7 +96,7 @@ def _del_func(path: str):
     split_path = path.split('.')
     for i in range(len(split_path), 0, -1):
         try:
-            exec('import {}'.format('.'.join(split_path[:i])))
+            exec(f"import {'.'.join(split_path[:i])}")
             exec(f'del {path}')
             break
         except Exception:
@@ -180,9 +177,9 @@ class FunctionRewriter:
         # Get current fx wrapped func nums
         self._ori_fx_wrap_num = len(_wrapped_fns_to_patch)
 
-        self._origin_functions = list()
-        self._additional_functions = list()
-        new_functions = list()
+        self._origin_functions = []
+        self._additional_functions = []
+        new_functions = []
         for function_path, record_dict in functions_records:
 
             # Check if the origin function exists
@@ -221,7 +218,7 @@ class FunctionRewriter:
                 # The func before and after copy has different globals
                 rewrite_function = copy_function(rewrite_function)
                 extra_kwargs = kwargs.copy()
-                extra_kwargs.update(record_dict)
+                extra_kwargs |= record_dict
                 context_caller = ContextCaller(rewrite_function, origin_func,
                                                cfg, **extra_kwargs)
                 # If there is a function wrapped by torch.fx.wrap in

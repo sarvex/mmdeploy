@@ -55,7 +55,7 @@ def onnx2tensorrt(work_dir: str,
     final_params = common_params
     final_params.update(model_params)
 
-    int8_param = final_params.get('int8_param', dict())
+    int8_param = final_params.get('int8_param', {})
     calib_file = get_calib_filename(deploy_cfg)
     if calib_file is not None:
         int8_param['calib_file'] = osp.join(work_dir, calib_file)

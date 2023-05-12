@@ -136,7 +136,7 @@ def build_video_recognition_model(
     backend = get_backend(deploy_cfg)
     model_type = get_codebase_config(deploy_cfg).get('model_type', 'end2end')
 
-    backend_video_recognizer = __BACKEND_MODEL.build(
+    return __BACKEND_MODEL.build(
         dict(
             type=model_type,
             backend=backend,
@@ -144,6 +144,6 @@ def build_video_recognition_model(
             device=device,
             deploy_cfg=deploy_cfg,
             data_preprocessor=data_preprocessor,
-            **kwargs))
-
-    return backend_video_recognizer
+            **kwargs
+        )
+    )

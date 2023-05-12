@@ -26,6 +26,4 @@ def bidirectionallstm__forward__ncnn(self, input):
     recurrent, _ = self.rnn(input)
     self.rnn.batch_first = False
 
-    output = self.embedding(recurrent)
-
-    return output
+    return self.embedding(recurrent)

@@ -13,8 +13,7 @@ def parse_args():
     parser.add_argument('det_model_path', help='path of detection model')
     parser.add_argument('cls_model_path', help='path of classification model')
     parser.add_argument('image_path', help='path to test image')
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():

@@ -12,15 +12,11 @@ ann_file = 'tests/data/annotation.json'
 
 
 def get_end2end_deploy_cfg():
-    deploy_cfg = Config(
+    return Config(
         dict(
             onnx_config=dict(
                 dynamic_axes={
-                    'input': {
-                        0: 'batch',
-                        2: 'height',
-                        3: 'width'
-                    },
+                    'input': {0: 'batch', 2: 'height', 3: 'width'},
                     'dets': {
                         0: 'batch',
                         1: 'num_dets',
@@ -37,7 +33,8 @@ def get_end2end_deploy_cfg():
                 save_file='end2end.onnx',
                 input_names=['input'],
                 output_names=['dets', 'labels'],
-                input_shape=None),
+                input_shape=None,
+            ),
             codebase_config=dict(
                 type='mmdet',
                 task='ObjectDetection',
@@ -48,9 +45,11 @@ def get_end2end_deploy_cfg():
                     pre_top_k=-1,
                     keep_top_k=100,
                     background_label_id=-1,
-                )),
-            backend_config=dict(type='onnxruntime')))
-    return deploy_cfg
+                ),
+            ),
+            backend_config=dict(type='onnxruntime'),
+        )
+    )
 
 
 def get_partition_deploy_cfg():
@@ -83,7 +82,7 @@ def get_model_cfg():
             ])
     ]
 
-    model_cfg = Config(
+    return Config(
         dict(
             data=dict(
                 samples_per_gpu=1,
@@ -92,8 +91,9 @@ def get_model_cfg():
                     type=dataset_type,
                     ann_file=ann_file,
                     img_prefix=data_root,
-                    pipeline=test_pipeline)),
-
+                    pipeline=test_pipeline,
+                ),
+            ),
             # model settings
             model=dict(
                 type='FasterRCNN',
@@ -106,12 +106,14 @@ def get_model_cfg():
                     norm_cfg=dict(type='BN', requires_grad=True),
                     norm_eval=True,
                     style='pytorch',
-                    init_cfg=dict(type='Pretrained')),
+                    init_cfg=dict(type='Pretrained'),
+                ),
                 neck=dict(
                     type='FPN',
                     in_channels=[256, 512, 1024, 2048],
                     out_channels=256,
-                    num_outs=5),
+                    num_outs=5,
+                ),
                 rpn_head=dict(
                     type='RPNHead',
                     in_channels=256,
@@ -120,24 +122,30 @@ def get_model_cfg():
                         type='AnchorGenerator',
                         scales=[8],
                         ratios=[0.5, 1.0, 2.0],
-                        strides=[4, 8, 16, 32, 64]),
+                        strides=[4, 8, 16, 32, 64],
+                    ),
                     bbox_coder=dict(
                         type='DeltaXYWHBBoxCoder',
-                        target_means=[.0, .0, .0, .0],
-                        target_stds=[1.0, 1.0, 1.0, 1.0]),
+                        target_means=[0.0, 0.0, 0.0, 0.0],
+                        target_stds=[1.0, 1.0, 1.0, 1.0],
+                    ),
                     loss_cls=dict(
                         type='CrossEntropyLoss',
                         use_sigmoid=True,
-                        loss_weight=1.0),
-                    loss_bbox=dict(type='L1Loss', loss_weight=1.0)),
+                        loss_weight=1.0,
+                    ),
+                    loss_bbox=dict(type='L1Loss', loss_weight=1.0),
+                ),
                 roi_head=dict(
                     type='StandardRoIHead',
                     bbox_roi_extractor=dict(
                         type='SingleRoIExtractor',
                         roi_layer=dict(
-                            type='RoIAlign', output_size=7, sampling_ratio=0),
+                            type='RoIAlign', output_size=7, sampling_ratio=0
+                        ),
                         out_channels=256,
-                        featmap_strides=[4, 8, 16, 32]),
+                        featmap_strides=[4, 8, 16, 32],
+                    ),
                     bbox_head=dict(
                         type='Shared2FCBBoxHead',
                         in_channels=256,
@@ -146,27 +154,35 @@ def get_model_cfg():
                         num_classes=80,
                         bbox_coder=dict(
                             type='DeltaXYWHBBoxCoder',
-                            target_means=[0., 0., 0., 0.],
-                            target_stds=[0.1, 0.1, 0.2, 0.2]),
+                            target_means=[0.0, 0.0, 0.0, 0.0],
+                            target_stds=[0.1, 0.1, 0.2, 0.2],
+                        ),
                         reg_class_agnostic=False,
                         loss_cls=dict(
                             type='CrossEntropyLoss',
                             use_sigmoid=False,
-                            loss_weight=1.0),
-                        loss_bbox=dict(type='L1Loss', loss_weight=1.0))),
+                            loss_weight=1.0,
+                        ),
+                        loss_bbox=dict(type='L1Loss', loss_weight=1.0),
+                    ),
+                ),
                 # model testing settings
                 test_cfg=dict(
                     rpn=dict(
                         nms_pre=1000,
                         max_per_img=1000,
                         nms=dict(type='nms', iou_threshold=0.7),
-                        min_bbox_size=0),
+                        min_bbox_size=0,
+                    ),
                     rcnn=dict(
                         score_thr=0.05,
                         nms=dict(type='nms', iou_threshold=0.5),
-                        max_per_img=100)))))
-
-    return model_cfg
+                        max_per_img=100,
+                    ),
+                ),
+            ),
+        )
+    )
 
 
 def run_test_create_calib_end2end():

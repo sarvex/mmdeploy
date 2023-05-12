@@ -12,8 +12,7 @@ def parse_args():
     parser.add_argument(
         'model_path', help='path of SDK model dumped by model converter')
     parser.add_argument('image_path', help='path of an image')
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():

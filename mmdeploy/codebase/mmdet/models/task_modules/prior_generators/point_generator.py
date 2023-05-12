@@ -59,5 +59,4 @@ def mlvl_point_generator__single_level_grid_priors__tensorrt(
         stride_w = shift_xx.new_full((feat_w * feat_h, ), stride_w).to(dtype)
         stride_h = shift_xx.new_full((feat_w * feat_h, ), stride_h).to(dtype)
         shifts = torch.stack([shift_xx, shift_yy, stride_w, stride_h], dim=-1)
-    all_points = shifts.to(device)
-    return all_points
+    return shifts.to(device)

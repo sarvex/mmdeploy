@@ -173,13 +173,10 @@ class SDKEnd2EndModel(End2EndModel):
         Returns:
             list: A list contains predictions.
         """
-        results = []
         dets, labels = self.wrapper.invoke(
             img[0].contiguous().detach().cpu().numpy())
         dets_results = [dets[labels == i, :] for i in range(len(self.CLASSES))]
-        results.append(dets_results)
-
-        return results
+        return [dets_results]
 
 
 def build_rotated_detection_model(
@@ -208,7 +205,7 @@ def build_rotated_detection_model(
     backend = get_backend(deploy_cfg)
     model_type = get_codebase_config(deploy_cfg).get('model_type', 'end2end')
 
-    backend_rotated_detector = __BACKEND_MODEL.build(
+    return __BACKEND_MODEL.build(
         dict(
             type=model_type,
             backend=backend,
@@ -216,6 +213,6 @@ def build_rotated_detection_model(
             device=device,
             deploy_cfg=deploy_cfg,
             data_preprocessor=data_preprocessor,
-            **kwargs))
-
-    return backend_rotated_detector
+            **kwargs
+        )
+    )

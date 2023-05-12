@@ -29,10 +29,7 @@ class GridPriorsTRTOp(torch.autograd.Function):
             # use shape instead of len to keep tracing while exporting to onnx
             xx = x.repeat(y.shape[0])
             yy = y.view(-1, 1).repeat(1, x.shape[0]).view(-1)
-            if row_major:
-                return xx, yy
-            else:
-                return yy, xx
+            return (xx, yy) if row_major else (yy, xx)
 
         shift_xx, shift_yy = _meshgrid(shift_x, shift_y)
         shifts = torch.stack([shift_xx, shift_yy, shift_xx, shift_yy], dim=-1)

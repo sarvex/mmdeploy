@@ -23,15 +23,16 @@ def chunk__ncnn(self, num_chunks: int, dim: int = 0) -> torch.Tensor:
         index_list.append(index)
         index += step
     index_list.append(dim_len)
-    output = [
+    return [
         self.index_select(
             dim,
-            torch.tensor([j for j in range(index_list[i], index_list[i + 1])],
-                         dtype=torch.int64))
+            torch.tensor(
+                list(range(index_list[i], index_list[i + 1])),
+                dtype=torch.int64,
+            ),
+        )
         for i in range(len(index_list) - 1)
     ]
-
-    return output
 
 
 @FUNCTION_REWRITER.register_rewriter(
@@ -43,5 +44,4 @@ def chunk__torchscript(self, num_chunks: int, dim: int = 0) -> torch.Tensor:
     """
     dim_size = self.shape[dim]
     assert dim_size % num_chunks == 0, 'cannot split to equal sizes'
-    output = self.split(dim_size // num_chunks, dim=dim)
-    return output
+    return self.split(dim_size // num_chunks, dim=dim)

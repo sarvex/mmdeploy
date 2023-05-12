@@ -174,10 +174,9 @@ def _nms_with_mask_static(self,
                         1)
     priors = torch.cat((priors, priors.new_zeros(1, 4)), 0)
 
-    # topk or sort
-    is_use_topk = keep_top_k > 0 and \
-        (torch.onnx.is_in_onnx_export() or keep_top_k < dets.shape[1])
-    if is_use_topk:
+    if is_use_topk := keep_top_k > 0 and (
+        torch.onnx.is_in_onnx_export() or keep_top_k < dets.shape[1]
+    ):
         _, topk_inds = dets[:, :, -1].topk(keep_top_k, dim=1)
     else:
         _, topk_inds = dets[:, :, -1].sort(dim=1, descending=True)

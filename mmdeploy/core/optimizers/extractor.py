@@ -13,8 +13,8 @@ def parse_extractor_io_string(io_str) -> tuple:
 
     search_result = re.search(r'^(.+)\[([0-9]+)\]$', name)
     if search_result is not None:
-        name = search_result.group(1)
-        func_id = int(search_result.group(2))
+        name = search_result[1]
+        func_id = int(search_result[2])
 
     return name, func_id, io_type
 
@@ -59,5 +59,4 @@ def create_extractor(model: onnx.ModelProto) -> onnx.utils.Extractor:
     onnx.utils.Extractor._dfs_search_reachable_nodes = \
         _dfs_search_reachable_nodes_fast
 
-    extractor = onnx.utils.Extractor(model)
-    return extractor
+    return onnx.utils.Extractor(model)

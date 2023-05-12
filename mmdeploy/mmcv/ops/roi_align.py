@@ -43,7 +43,7 @@ def roi_align_default(g, input: Tensor, rois: Tensor, output_size: List[int],
     """
     ctx = SYMBOLIC_REWRITER.get_context()
     backend = get_backend(ctx.cfg)
-    if backend == Backend.PPLNN or backend == Backend.TENSORRT:
+    if backend in [Backend.PPLNN, Backend.TENSORRT]:
         domain = 'mmcv'
         return g.op(
             f'{domain}::MMCVRoiAlign',
@@ -75,27 +75,7 @@ def roi_align_default(g, input: Tensor, rois: Tensor, output_size: List[int],
                 value_t=torch.tensor([1, 2, 3, 4], dtype=torch.long)))
         ir_cfg = get_ir_config(ctx.cfg)
         opset_version = ir_cfg.get('opset_version', 11)
-        if opset_version < 16:
-            # preprocess rois to make compatible with opset 16-
-            # as for opset 16+, `aligned` get implemented inside onnxruntime.
-            if aligned is True:
-                rois = add(
-                    g, rois,
-                    g.op(
-                        'Constant',
-                        value_t=torch.tensor([-0.5 / spatial_scale],
-                                             dtype=torch.float)))
-            return g.op(
-                'RoiAlign',
-                input,
-                rois,
-                batch_indices,
-                output_height_i=output_size[0],
-                output_width_i=output_size[1],
-                spatial_scale_f=spatial_scale,
-                sampling_ratio_i=sampling_ratio,
-                mode_s=pool_mode)
-        else:
+        if opset_version >= 16:
             return g.op(
                 'RoiAlign',
                 input,
@@ -107,3 +87,22 @@ def roi_align_default(g, input: Tensor, rois: Tensor, output_size: List[int],
                 sampling_ratio_i=sampling_ratio,
                 mode_s=pool_mode,
                 aligned_i=aligned)
+            # preprocess rois to make compatible with opset 16-
+            # as for opset 16+, `aligned` get implemented inside onnxruntime.
+        if aligned:
+            rois = add(
+                g, rois,
+                g.op(
+                    'Constant',
+                    value_t=torch.tensor([-0.5 / spatial_scale],
+                                         dtype=torch.float)))
+        return g.op(
+            'RoiAlign',
+            input,
+            rois,
+            batch_indices,
+            output_height_i=output_size[0],
+            output_width_i=output_size[1],
+            spatial_scale_f=spatial_scale,
+            sampling_ratio_i=sampling_ratio,
+            mode_s=pool_mode)

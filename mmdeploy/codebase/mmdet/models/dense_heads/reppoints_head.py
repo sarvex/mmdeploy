@@ -19,8 +19,7 @@ def _bbox_pre_decode(points: torch.Tensor, bbox_pred: torch.Tensor,
     """compute real bboxes."""
     points = points[..., :2]
     bbox_pos_center = torch.cat([points, points], dim=-1)
-    bboxes = bbox_pred * stride + bbox_pos_center
-    return bboxes
+    return bbox_pred * stride + bbox_pos_center
 
 
 def _bbox_post_decode(bboxes: torch.Tensor, max_shape: Sequence[int]):
@@ -29,8 +28,7 @@ def _bbox_post_decode(bboxes: torch.Tensor, max_shape: Sequence[int]):
     y1 = bboxes[..., 1].clamp(min=0, max=max_shape[0])
     x2 = bboxes[..., 2].clamp(min=0, max=max_shape[1])
     y2 = bboxes[..., 3].clamp(min=0, max=max_shape[0])
-    decoded_bboxes = torch.stack([x1, y1, x2, y2], dim=-1)
-    return decoded_bboxes
+    return torch.stack([x1, y1, x2, y2], dim=-1)
 
 
 @FUNCTION_REWRITER.register_rewriter(
@@ -120,10 +118,7 @@ def reppoints_head__predict_by_feat(
 
         scores = cls_score.permute(0, 2, 3, 1).reshape(batch_size, -1,
                                                        self.cls_out_channels)
-        if self.use_sigmoid_cls:
-            scores = scores.sigmoid()
-        else:
-            scores = scores.softmax(-1)
+        scores = scores.sigmoid() if self.use_sigmoid_cls else scores.softmax(-1)
         bbox_pred = bbox_pred.permute(0, 2, 3, 1)
         bbox_pred = bbox_pred.reshape(batch_size, -1)
         bbox_pred = (bbox_pred + 0).reshape(batch_size, -1, 4)

@@ -21,8 +21,7 @@ def parse_args():
         default=1)
     parser.add_argument(
         '--num_clips', help='Number of clips to be sampled', default=25)
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def SampleFrames(cap, clip_len, frame_interval, num_clips):
@@ -53,9 +52,7 @@ def SampleFrames(cap, clip_len, frame_interval, num_clips):
         buffer[tid] = mat
         ind += 1
 
-    clips = []
-    for tid in frame_inds:
-        clips.append(buffer[tid])
+    clips = [buffer[tid] for tid in frame_inds]
     info = (clip_len, num_clips)
     return clips, info
 

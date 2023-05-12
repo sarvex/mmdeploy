@@ -7,8 +7,6 @@ from typing import Any, Optional, Sequence
 from mmdeploy.utils import get_file_path
 from ..base import BACKEND_MANAGERS, BaseBackendManager
 
-_is_available = False
-
 module_name = 'mmdeploy_runtime'
 
 candidates = [
@@ -16,14 +14,11 @@ candidates = [
     f'../../../build/bin/*/{module_name}.*.pyd'
 ]
 
-lib_path = get_file_path(osp.dirname(__file__), candidates)
-
-if lib_path:
+if lib_path := get_file_path(osp.dirname(__file__), candidates):
     lib_dir = osp.dirname(lib_path)
     sys.path.append(lib_dir)
 
-if importlib.util.find_spec(module_name) is not None:
-    _is_available = True
+_is_available = importlib.util.find_spec(module_name) is not None
 
 
 @BACKEND_MANAGERS.register('sdk')
@@ -75,9 +70,8 @@ class SDKManager(BaseBackendManager):
         """Get the version of the backend."""
         if not cls.is_available():
             return 'None'
-        else:
-            import pkg_resources
-            try:
-                return pkg_resources.get_distribution('mmdeploy').version
-            except Exception:
-                return 'None'
+        import pkg_resources
+        try:
+            return pkg_resources.get_distribution('mmdeploy').version
+        except Exception:
+            return 'None'

@@ -39,10 +39,9 @@ def convert_to_list(rewrite_output: Dict, output_names: List[str]) -> List:
     The new list will contain only those output values, whose names are in list
     'output_names'.
     """
-    outputs = [
+    return [
         value for name, value in rewrite_output.items() if name in output_names
     ]
-    return outputs
 
 
 def get_anchor_head_model():
@@ -88,10 +87,9 @@ def get_single_roi_extractor():
         type='RoIAlignRotated', out_size=7, sample_num=2, clockwise=True)
     out_channels = 1
     featmap_strides = [4, 8, 16, 32]
-    model = RotatedSingleRoIExtractor(roi_layer, out_channels,
-                                      featmap_strides).eval()
-
-    return model
+    return RotatedSingleRoIExtractor(
+        roi_layer, out_channels, featmap_strides
+    ).eval()
 
 
 @pytest.mark.parametrize('backend_type', [Backend.ONNXRUNTIME])

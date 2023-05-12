@@ -14,4 +14,3 @@ if is_available():
         __all__ += ['SNPEWrapper']
     except Exception as e:
         print(e)
-        pass

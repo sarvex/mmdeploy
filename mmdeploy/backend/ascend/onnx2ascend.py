@@ -50,10 +50,10 @@ def from_onnx(onnx_model: Union[onnx.ModelProto, str], work_dir: str,
 
     output_path = osp.join(work_dir, osp.splitext(osp.split(onnx_path)[1])[0])
 
-    input_shapes = []
-
-    for name, dims in model_inputs['input_shapes'].items():
-        input_shapes.append(make_shape_string(name, dims))
+    input_shapes = [
+        make_shape_string(name, dims)
+        for name, dims in model_inputs['input_shapes'].items()
+    ]
     input_shapes = ';'.join(input_shapes)
 
     input_format = 'ND' if 'dynamic_dims' in model_inputs else 'NCHW'

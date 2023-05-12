@@ -20,8 +20,7 @@ def __forward_impl_instance_seg(self, batch_inputs, data_samples, **kwargs):
     2. Support both dynamic and static export to onnx.
     """
     x = self.extract_feat(batch_inputs)
-    mask_outs = self.mask_head.predict(x, data_samples, rescale=False)
-    return mask_outs
+    return self.mask_head.predict(x, data_samples, rescale=False)
 
 
 @FUNCTION_REWRITER.register_rewriter(

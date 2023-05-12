@@ -424,16 +424,18 @@ class PartitionTwoStageModel(End2EndModel):
     def _init_wrapper(self, backend, backend_files, device):
         n = get_backend_file_count(backend)
         num_feat = self.model_cfg['model']['neck']['num_outs']
-        partition0_output_names = [
-            'feat/{}'.format(i) for i in range(num_feat)
-        ] + ['scores', 'boxes']
+        partition0_output_names = [f'feat/{i}' for i in range(num_feat)] + [
+            'scores',
+            'boxes',
+        ]
 
         self.first_wrapper = BaseBackendModel._build_wrapper(
             backend,
-            backend_files[0:n],
+            backend_files[:n],
             device,
             output_names=partition0_output_names,
-            deploy_cfg=self.deploy_cfg)
+            deploy_cfg=self.deploy_cfg,
+        )
 
         self.second_wrapper = BaseBackendModel._build_wrapper(
             backend,
@@ -644,7 +646,7 @@ class VACCDetModel(End2EndModel):
         assert mode == 'predict', 'Deploy model only allow mode=="predict".'
         inputs = inputs.contiguous()
         outputs = self.wrapper({self.input_name: inputs})
-        outputs = [i for i in outputs.values()]
+        outputs = list(outputs.values())
         ret = self._get_bboxes(outputs[0], [i.metainfo for i in data_samples])
         for i in range(len(ret)):
             data_samples[i].pred_instances = ret[i]
@@ -706,7 +708,7 @@ class SDKEnd2EndModel(End2EndModel):
                 img_mask[top:top + mask.shape[0],
                          left:left + mask.shape[1]] = mask
                 segm_results.append(torch.from_numpy(img_mask))
-            if len(segm_results) > 0:
+            if segm_results:
                 result.masks = torch.stack(segm_results, 0).to(self.device)
             else:
                 result.masks = torch.zeros([0, ori_h, ori_w]).to(self.device)
@@ -829,7 +831,7 @@ class RKNNModel(End2EndModel):
 
                 from ..models.layers.bbox_nms import _multiclass_nms
                 dets, labels = _multiclass_nms(outputs[0], outputs[1])
-                ret = [InstanceData() for i in range(dets.shape[0])]
+                ret = [InstanceData() for _ in range(dets.shape[0])]
                 for i, instance_data in enumerate(ret):
                     instance_data.bboxes = dets[i, :, :4]
                     instance_data.scores = dets[i, :, 4]
@@ -874,7 +876,7 @@ class RKNNModel(End2EndModel):
             data_samples = data_samples + [data_samples[0]] * pad_len
             inputs = torch.cat([inputs] + [inputs[:1, ...]] * pad_len, 0)
         outputs = self.wrapper({self.input_name: inputs})
-        outputs = [i for i in outputs.values()]
+        outputs = list(outputs.values())
         ret = self._get_bboxes(outputs, [i.metainfo for i in data_samples])
         for i in range(len(ret)):
             data_samples[i].pred_instances = ret[i]
@@ -930,7 +932,7 @@ def build_object_detection_model(
         # Default Config is 'end2end'
         partition_type = codebase_config.get('model_type', 'end2end')
 
-    backend_detector = __BACKEND_MODEL.build(
+    return __BACKEND_MODEL.build(
         dict(
             type=partition_type,
             backend=backend,
@@ -939,6 +941,6 @@ def build_object_detection_model(
             model_cfg=model_cfg,
             deploy_cfg=deploy_cfg,
             data_preprocessor=data_preprocessor,
-            **kwargs))
-
-    return backend_detector
+            **kwargs
+        )
+    )

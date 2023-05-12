@@ -42,5 +42,4 @@ def qbox2rbox__default(boxes: Tensor) -> Tensor:
     ws = torch.where(odd, _hs, _ws)
     hs = torch.where(odd, _ws, _hs)
     thetas = torch.remainder(_thetas, np.pi * 0.5)
-    rbboxes = torch.cat([cxs, cys, ws, hs, thetas], axis=-1)
-    return rbboxes
+    return torch.cat([cxs, cys, ws, hs, thetas], axis=-1)

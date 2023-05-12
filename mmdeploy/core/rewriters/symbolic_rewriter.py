@@ -84,16 +84,16 @@ class SymbolicRewriter:
         # Get current records
         symbolic_records = self._registry.get_records(env)
 
-        self._pytorch_symbolic = list()
-        self._extra_symbolic = list()
-        new_functions = list()
+        self._pytorch_symbolic = []
+        self._extra_symbolic = []
+        new_functions = []
         for function_name, record_dict in symbolic_records:
 
             symbolic_function = record_dict['_object']
             symbolic_function = copy_function(symbolic_function)
             arg_descriptors = record_dict['arg_descriptors']
             extra_kwargs = kwargs.copy()
-            extra_kwargs.update(record_dict)
+            extra_kwargs |= record_dict
             context_caller = ContextCaller(symbolic_function, None, cfg,
                                            **extra_kwargs)
 
@@ -122,7 +122,7 @@ class SymbolicRewriter:
                     assert issubclass(
                         origin_func,
                         Function), \
-                        f'{function_name} is not an torch.autograd.Function'
+                            f'{function_name} is not an torch.autograd.Function'
                 except Exception:
                     origin_func = None
                     logger = get_root_logger()

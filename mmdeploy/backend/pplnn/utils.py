@@ -64,8 +64,8 @@ def register_engines(device_id: int,
     Returns:
         list[pplnn.Engine]: A list of registered pplnn engines.
     """
-    engines = []
     logger = get_root_logger()
+    engines = []
     if device_id == -1:
         x86_options = pplnn.x86.EngineOptions()
         x86_engine = pplnn.x86.EngineFactory.Create(x86_options)
@@ -76,8 +76,9 @@ def register_engines(device_id: int,
         if disable_avx512:
             status = x86_engine.Configure(pplnn.x86.ENGINE_CONF_DISABLE_AVX512)
             if status != pplcommon.RC_SUCCESS:
-                logger.error('x86 engine Configure() failed: ' +
-                             pplcommon.GetRetCodeStr(status))
+                logger.error(
+                    f'x86 engine Configure() failed: {pplcommon.GetRetCodeStr(status)}'
+                )
                 sys.exit(1)
 
         engines.append(x86_engine)
@@ -96,8 +97,9 @@ def register_engines(device_id: int,
             status = cuda_engine.Configure(
                 pplnn.cuda.ENGINE_CONF_USE_DEFAULT_ALGORITHMS)
             if status != pplcommon.RC_SUCCESS:
-                logger.error('cuda engine Configure() failed: ' +
-                             pplcommon.GetRetCodeStr(status))
+                logger.error(
+                    f'cuda engine Configure() failed: {pplcommon.GetRetCodeStr(status)}'
+                )
                 sys.exit(1)
 
         if input_shapes is not None:
@@ -105,8 +107,8 @@ def register_engines(device_id: int,
                 pplnn.cuda.ENGINE_CONF_SET_INPUT_DIMS, input_shapes)
             if status != pplcommon.RC_SUCCESS:
                 logger.error(
-                    'cuda engine Configure(ENGINE_CONF_SET_INPUT_DIMS) '
-                    'failed: ' + pplcommon.GetRetCodeStr(status))
+                    f'cuda engine Configure(ENGINE_CONF_SET_INPUT_DIMS) failed: {pplcommon.GetRetCodeStr(status)}'
+                )
                 sys.exit(1)
 
         if export_algo_file is not None:
@@ -114,8 +116,8 @@ def register_engines(device_id: int,
                 pplnn.cuda.ENGINE_CONF_EXPORT_ALGORITHMS, export_algo_file)
             if status != pplcommon.RC_SUCCESS:
                 logger.error(
-                    'cuda engine Configure(ENGINE_CONF_EXPORT_ALGORITHMS) '
-                    'failed: ' + pplcommon.GetRetCodeStr(status))
+                    f'cuda engine Configure(ENGINE_CONF_EXPORT_ALGORITHMS) failed: {pplcommon.GetRetCodeStr(status)}'
+                )
                 sys.exit(1)
 
         if import_algo_file is not None:
@@ -123,8 +125,8 @@ def register_engines(device_id: int,
                 pplnn.cuda.ENGINE_CONF_IMPORT_ALGORITHMS, import_algo_file)
             if status != pplcommon.RC_SUCCESS:
                 logger.error(
-                    'cuda engine Configure(ENGINE_CONF_IMPORT_ALGORITHMS) '
-                    'failed: ' + pplcommon.GetRetCodeStr(status))
+                    f'cuda engine Configure(ENGINE_CONF_IMPORT_ALGORITHMS) failed: {pplcommon.GetRetCodeStr(status)}'
+                )
                 sys.exit(1)
 
         engines.append(cuda_engine)

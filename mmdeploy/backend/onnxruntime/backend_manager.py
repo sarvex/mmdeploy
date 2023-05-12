@@ -61,23 +61,19 @@ class ONNXRuntimeManager(BaseBackendManager):
         """Get the version of the backend."""
         if not cls.is_available():
             return 'None'
-        else:
-            import pkg_resources
-            try:
-                ort_version = pkg_resources.get_distribution(
-                    'onnxruntime').version
-            except Exception:
-                ort_version = 'None'
-            try:
-                ort_gpu_version = pkg_resources.get_distribution(
-                    'onnxruntime-gpu').version
-            except Exception:
-                ort_gpu_version = 'None'
+        import pkg_resources
+        try:
+            ort_version = pkg_resources.get_distribution(
+                'onnxruntime').version
+        except Exception:
+            ort_version = 'None'
+        try:
+            ort_gpu_version = pkg_resources.get_distribution(
+                'onnxruntime-gpu').version
+        except Exception:
+            ort_gpu_version = 'None'
 
-            if ort_gpu_version != 'None':
-                return ort_gpu_version
-            else:
-                return ort_version
+        return ort_gpu_version if ort_gpu_version != 'None' else ort_version
 
     @classmethod
     def check_env(cls, log_callback: Callable = lambda _: _) -> str:

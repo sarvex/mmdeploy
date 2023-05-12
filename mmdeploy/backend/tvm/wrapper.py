@@ -45,9 +45,8 @@ class TVMWrapper(BaseWrapper):
 
         match_result = re.match('([^:]+)(:[0-9]+)?$', device)
         assert match_result is not None, f'Can not parse device {device}.'
-        device_type = match_result.group(1).lower()
-        device_id = 0 if match_result.lastindex == 1 else int(
-            match_result.group(2)[1:])
+        device_type = match_result[1].lower()
+        device_id = 0 if match_result.lastindex == 1 else int(match_result[2][1:])
         device = tvm.device(device_type, device_id)
 
         if bytecode is not None:
@@ -83,35 +82,32 @@ class TVMWrapper(BaseWrapper):
         module = self._module
         device = self._device
 
-        mod_inputs = dict()
-        for name, tensor in inputs.items():
-            if tensor.device.type == 'cuda':
-                mod_inputs[name] = tvm.nd.from_dlpack(tensor)
-            else:
-                mod_inputs[name] = tvm.nd.array(tensor.cpu().numpy(), device)
-
+        mod_inputs = {
+            name: tvm.nd.from_dlpack(tensor)
+            if tensor.device.type == 'cuda'
+            else tvm.nd.array(tensor.cpu().numpy(), device)
+            for name, tensor in inputs.items()
+        }
+        ret = {}
         if self.use_vm:
             module.set_input('main', **mod_inputs)
             self.__tvm_execute()
             vm_ret = module.get_outputs()
-            ret = dict()
             for idx, name in enumerate(self._output_names):
                 ndarray = vm_ret[idx]
                 tensor = torch.from_dlpack(ndarray.to_dlpack())
                 ret[name] = tensor
-            return ret
-
         else:
             module.set_input(**mod_inputs)
 
             self.__tvm_execute()
 
-            ret = dict()
             for idx, name in enumerate(self._output_names):
                 ndarray = module.get_output(idx)
                 tensor = torch.from_dlpack(ndarray.to_dlpack())
                 ret[name] = tensor.clone()
-            return ret
+
+        return ret
 
     @TimeCounter.count_time(Backend.TVM.value)
     def __tvm_execute(self):

@@ -92,12 +92,11 @@ class VideoRecognition(BaseTask):
         model_cfg = self.model_cfg
         preprocess_cfg = model_cfg.get('preprocess_cfg', None)
         from mmengine.registry import MODELS
-        if preprocess_cfg is not None:
-            data_preprocessor = MODELS.build(preprocess_cfg)
-        else:
-            data_preprocessor = BaseDataPreprocessor()
-
-        return data_preprocessor
+        return (
+            MODELS.build(preprocess_cfg)
+            if preprocess_cfg is not None
+            else BaseDataPreprocessor()
+        )
 
     def build_backend_model(self,
                             model_files: Sequence[str] = None,
@@ -125,8 +124,7 @@ class VideoRecognition(BaseTask):
     def create_input(self,
                      imgs: Union[str, np.ndarray],
                      input_shape: Sequence[int] = None,
-                     data_preprocessor: Optional[BaseDataPreprocessor] = None)\
-            -> Tuple[Dict, torch.Tensor]:
+                     data_preprocessor: Optional[BaseDataPreprocessor] = None) -> Tuple[Dict, torch.Tensor]:
         """Create input for video recognition.
 
         Args:
@@ -157,11 +155,10 @@ class VideoRecognition(BaseTask):
             data.append(data_)
 
         data = pseudo_collate(data)
-        if data_preprocessor is not None:
-            data = data_preprocessor(data, False)
-            return data, data['inputs']
-        else:
+        if data_preprocessor is None:
             return data, BaseTask.get_tensor_from_input(data)
+        data = data_preprocessor(data, False)
+        return data, data['inputs']
 
     def visualize(self,
                   image: str,
@@ -211,9 +208,10 @@ class VideoRecognition(BaseTask):
             out_frames = []
             for i, frame in enumerate(frames):
                 visualizer.set_image(frame)
-                texts = [f'Frame {i} of total {len(frames)} frames']
-                texts.append(
-                    f'top-1 label: {top1_item[0]}, score: {top1_item[1]}')
+                texts = [
+                    f'Frame {i} of total {len(frames)} frames',
+                    f'top-1 label: {top1_item[0]}, score: {top1_item[1]}',
+                ]
                 visualizer.draw_texts('\n'.join(texts), **text_cfg)
                 drawn_img = visualizer.get_image()
                 out_frames.append(drawn_img)
@@ -263,9 +261,7 @@ class VideoRecognition(BaseTask):
 
         lift = dict(type='Lift', transforms=[])
         lift['transforms'].append(dict(type='LoadImageFromFile'))
-        transforms2index = {}
-        for i, trans in enumerate(pipeline):
-            transforms2index[trans['type']] = i
+        transforms2index = {trans['type']: i for i, trans in enumerate(pipeline)}
         lift_key = [
             'Resize', 'Normalize', 'TenCrop', 'ThreeCrop', 'CenterCrop'
         ]
@@ -303,8 +299,7 @@ class VideoRecognition(BaseTask):
                 pipeline[index]['type'] = 'Collect'
             other.append(pipeline[index])
 
-        reorder = [lift, *other]
-        return reorder
+        return [lift, *other]
 
     def get_postprocess(self, *args, **kwargs) -> Dict:
         """Get the postprocess information for SDK.
@@ -318,8 +313,7 @@ class VideoRecognition(BaseTask):
         logger.warning('use default top-k value 1')
         num_classes = self.model_cfg.model.cls_head.num_classes
         params = dict(topk=1, num_classes=num_classes)
-        postprocess = dict(type='BaseHead', params=params)
-        return postprocess
+        return dict(type='BaseHead', params=params)
 
     def get_model_name(self, *args, **kwargs) -> str:
         """Get the model name.
@@ -328,5 +322,4 @@ class VideoRecognition(BaseTask):
             str: the name of the model.
         """
         assert 'type' in self.model_cfg.model, 'model config contains no type'
-        name = self.model_cfg.model.type.lower()
-        return name
+        return self.model_cfg.model.type.lower()

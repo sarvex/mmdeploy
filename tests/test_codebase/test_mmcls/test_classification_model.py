@@ -84,8 +84,8 @@ class TestRKNNEnd2EndModel:
         })
 
         from mmdeploy.codebase.mmcls.deploy.classification_model import \
-            RKNNEnd2EndModel
-        class_names = ['' for i in range(NUM_CLASS)]
+                RKNNEnd2EndModel
+        class_names = ['' for _ in range(NUM_CLASS)]
         cls.end2end_model = RKNNEnd2EndModel(
             Backend.RKNN, [''],
             device='cpu',

@@ -92,25 +92,26 @@ def test_srcnn():
 
     onnx_file_path = tempfile.NamedTemporaryFile(suffix='.onnx').name
     onnx_cfg = get_onnx_config(deploy_cfg)
-    input_names = [k for k, v in model_inputs.items() if k != 'ctx']
+    input_names = [k for k in model_inputs if k != 'ctx']
 
     dynamic_axes = onnx_cfg.get('dynamic_axes', None)
 
     if dynamic_axes is not None and not isinstance(dynamic_axes, Dict):
         dynamic_axes = zip(input_names, dynamic_axes)
 
-    with RewriterContext(
-            cfg=deploy_cfg, backend=Backend.TENSORRT.value), torch.no_grad():
+    with (RewriterContext(
+                cfg=deploy_cfg, backend=Backend.TENSORRT.value), torch.no_grad()):
         torch.onnx.export(
             pytorch_model,
-            tuple([v for k, v in model_inputs.items()]),
+            tuple(v for k, v in model_inputs.items()),
             onnx_file_path,
             export_params=True,
             input_names=input_names,
             output_names=None,
             opset_version=11,
             dynamic_axes=dynamic_axes,
-            keep_initializers_as_inputs=False)
+            keep_initializers_as_inputs=False,
+        )
 
     # The result should be different due to the rewrite.
     # So we only check if the file exists

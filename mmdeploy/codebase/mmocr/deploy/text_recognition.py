@@ -126,8 +126,7 @@ class TextRecognition(BaseTask):
     def create_input(self,
                      imgs: Union[str, np.ndarray],
                      input_shape: Sequence[int] = None,
-                     data_preprocessor: Optional[BaseDataPreprocessor] = None)\
-            -> Tuple[Dict, torch.Tensor]:
+                     data_preprocessor: Optional[BaseDataPreprocessor] = None) -> Tuple[Dict, torch.Tensor]:
         """Create input for segmentor.
 
         Args:
@@ -172,11 +171,10 @@ class TextRecognition(BaseTask):
         data = pseudo_collate(data)
         data['inputs'] = cast_data_device(data['inputs'],
                                           torch.device(self.device))
-        if data_preprocessor is not None:
-            data = data_preprocessor(data, False)
-            return data, data['inputs']
-        else:
+        if data_preprocessor is None:
             return data, BaseTask.get_tensor_from_input(data)
+        data = data_preprocessor(data, False)
+        return data, data['inputs']
 
     def get_visualizer(self, name: str, save_dir: str):
         """Visualize predictions of a model.
@@ -275,5 +273,4 @@ class TextRecognition(BaseTask):
             str: the name of the model.
         """
         assert 'type' in self.model_cfg.model, 'model config contains no type'
-        name = self.model_cfg.model.type.lower()
-        return name
+        return self.model_cfg.model.type.lower()

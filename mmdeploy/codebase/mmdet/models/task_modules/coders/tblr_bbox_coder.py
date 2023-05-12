@@ -67,6 +67,4 @@ def tblr2bboxes(priors,
     if clip_border and max_shape is not None:
         from mmdeploy.codebase.mmdet.deploy import clip_bboxes
         xmin, ymin, xmax, ymax = clip_bboxes(xmin, ymin, xmax, ymax, max_shape)
-    bboxes = torch.cat([xmin, ymin, xmax, ymax], dim=-1).view(priors.size())
-
-    return bboxes
+    return torch.cat([xmin, ymin, xmax, ymax], dim=-1).view(priors.size())

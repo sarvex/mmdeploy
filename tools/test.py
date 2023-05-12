@@ -77,8 +77,7 @@ def parse_args():
         default='192.168.1.1:60000',
         help='Remote ipv4:port or ipv6:port for inference on edge device.')
 
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():

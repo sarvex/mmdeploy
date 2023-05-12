@@ -60,5 +60,4 @@ def generate_mmpose_task_processor(model_cfg=None, deploy_cfg=None):
     if deploy_cfg is None:
         deploy_cfg = generate_mmpose_deploy_config()
     model_cfg, deploy_cfg = load_config(model_cfg, deploy_cfg)
-    task_processor = build_task_processor(model_cfg, deploy_cfg, 'cpu')
-    return task_processor
+    return build_task_processor(model_cfg, deploy_cfg, 'cpu')

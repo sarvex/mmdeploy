@@ -88,7 +88,7 @@ def _get_dataset_metainfo(model_cfg: Config):
             dataset_list = [
                 module_dict.get(dataset.type, None) for dataset in dataset_cfg
             ]
-            if len(dataset_list) == 0:
+            if not dataset_list:
                 continue
             meta_list = []
             for i, dataset in enumerate(dataset_list):
@@ -158,8 +158,7 @@ class SuperResolution(BaseTask):
     def create_input(self,
                      imgs: Union[str, np.ndarray],
                      input_shape: Sequence[int] = None,
-                     data_preprocessor: Optional[BaseDataPreprocessor] = None)\
-            -> Tuple[Dict, torch.Tensor]:
+                     data_preprocessor: Optional[BaseDataPreprocessor] = None) -> Tuple[Dict, torch.Tensor]:
         """Create input for editing processor.
 
         Args:
@@ -187,19 +186,14 @@ class SuperResolution(BaseTask):
         test_pipeline = Compose(cfg.test_pipeline)
         data_arr = []
         for img in imgs:
-            if isinstance(img, np.ndarray):
-                data = dict(img=img)
-            else:
-                data = dict(img_path=img)
-
+            data = dict(img=img) if isinstance(img, np.ndarray) else dict(img_path=img)
             data = test_pipeline(data)
             data_arr.append(data)
         data = pseudo_collate(data_arr)
-        if data_preprocessor is not None:
-            data = data_preprocessor(data, False)
-            return data, data['inputs']
-        else:
+        if data_preprocessor is None:
             return data, BaseTask.get_tensor_from_input(data)
+        data = data_preprocessor(data, False)
+        return data, data['inputs']
 
     def get_visualizer(self, name: str, save_dir: str):
         """Visualize predictions of a model.
@@ -339,8 +333,7 @@ class SuperResolution(BaseTask):
         from mmdeploy.utils.constants import SDK_TASK_MAP as task_map
         task = get_task_type(self.deploy_cfg)
         component = task_map[task]['component']
-        post_processor = {'type': component}
-        return post_processor
+        return {'type': component}
 
     def get_model_name(self, *args, **kwargs) -> str:
         """Get the model name.
@@ -352,5 +345,4 @@ class SuperResolution(BaseTask):
         'config'
         assert 'type' in self.model_cfg.model.generator, 'generator contains '
         'no type'
-        name = self.model_cfg.model.generator.type.lower()
-        return name
+        return self.model_cfg.model.generator.type.lower()

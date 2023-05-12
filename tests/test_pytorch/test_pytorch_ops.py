@@ -61,8 +61,7 @@ class OpModel(torch.nn.Module):
 def get_model_onnx_nodes(model, x, onnx_file=onnx_file):
     torch.onnx.export(model, x, onnx_file, opset_version=11)
     onnx_model = onnx.load(onnx_file)
-    nodes = onnx_model.graph.node
-    return nodes
+    return onnx_model.graph.node
 
 
 @pytest.mark.usefixtures('prepare_symbolics')
@@ -127,13 +126,8 @@ class TestLinear:
 
     def check(self, nodes):
         print(nodes)
-        exist = False
-        for node in nodes:
-            if node.op_type in ['Gemm', 'MatMul']:
-                exist = True
-                break
-
-        assert exist is True
+        exist = any(node.op_type in ['Gemm', 'MatMul'] for node in nodes)
+        assert exist
 
     def test_normal(self):
         x = torch.rand(1, 2, 3)

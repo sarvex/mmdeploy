@@ -62,8 +62,7 @@ def parse_args():
         '--uri',
         default='192.168.1.1:60000',
         help='Remote ipv4:port or ipv6:port for inference on edge device.')
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def create_process(name, target, args, kwargs, ret_value=None):
@@ -220,11 +219,9 @@ def main():
             f.writelines([osp.abspath(args.img)])
         if quantization_cfg.get('dataset', None) is None:
             quantization_cfg['dataset'] = dataset_file
-    if backend == Backend.ASCEND:
-        # TODO: Add this to backend manager in the future
-        if args.dump_info:
-            from mmdeploy.backend.ascend import update_sdk_pipeline
-            update_sdk_pipeline(args.work_dir)
+    if backend == Backend.ASCEND and args.dump_info:
+        from mmdeploy.backend.ascend import update_sdk_pipeline
+        update_sdk_pipeline(args.work_dir)
 
     if backend == Backend.VACC:
         # TODO: Add this to task_processor in the future
@@ -239,18 +236,27 @@ def main():
         for onnx_path, model_input in zip(ir_files, model_inputs):
 
             quant_mode = model_input.get('qconfig', {}).get('dtype', 'fp16')
-            assert quant_mode in ['int8',
-                                  'fp16'], quant_mode + ' not support now'
+            assert quant_mode in [
+                'int8',
+                'fp16',
+            ], f'{quant_mode} not support now'
             shape_dict = model_input.get('shape', {})
 
             if quant_mode == 'int8':
                 create_process(
                     'vacc quant dataset',
                     target=get_quant,
-                    args=(deploy_cfg, model_cfg, shape_dict, checkpoint_path,
-                          args.work_dir, args.device),
-                    kwargs=dict(),
-                    ret_value=ret_value)
+                    args=(
+                        deploy_cfg,
+                        model_cfg,
+                        shape_dict,
+                        checkpoint_path,
+                        args.work_dir,
+                        args.device,
+                    ),
+                    kwargs={},
+                    ret_value=ret_value,
+                )
 
     # convert to backend
     PIPELINE_MANAGER.set_log_level(log_level, [to_backend])
@@ -284,18 +290,32 @@ def main():
             create_process(
                 'ncnn quant table',
                 target=get_table,
-                args=(onnx_path, deploy_cfg, model_cfg, quant_onnx,
-                      quant_table, quant_image_dir, args.device),
-                kwargs=dict(),
-                ret_value=ret_value)
+                args=(
+                    onnx_path,
+                    deploy_cfg,
+                    model_cfg,
+                    quant_onnx,
+                    quant_table,
+                    quant_image_dir,
+                    args.device,
+                ),
+                kwargs={},
+                ret_value=ret_value,
+            )
 
             create_process(
                 'ncnn_int8',
                 target=ncnn2int8,
-                args=(model_param_path, model_bin_path, quant_table,
-                      quant_param, quant_bin),
-                kwargs=dict(),
-                ret_value=ret_value)
+                args=(
+                    model_param_path,
+                    model_bin_path,
+                    quant_table,
+                    quant_param,
+                    quant_bin,
+                ),
+                kwargs={},
+                ret_value=ret_value,
+            )
             backend_files += [quant_param, quant_bin]
 
     if args.test_img is None:

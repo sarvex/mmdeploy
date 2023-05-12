@@ -40,10 +40,12 @@ def process_model_config(model_cfg: mmengine.Config,
             pipeline[i].meta_keys = tuple(j for j in pipeline[i].meta_keys
                                           if j != 'instances')
         # for static exporting
-        if input_shape is not None:
-            if transform.type in ('Resize', 'ShortScaleAspectJitter'):
-                pipeline[i] = mmengine.ConfigDict(
-                    dict(type='Resize', scale=input_shape, keep_ratio=False))
+        if input_shape is not None and transform.type in (
+            'Resize',
+            'ShortScaleAspectJitter',
+        ):
+            pipeline[i] = mmengine.ConfigDict(
+                dict(type='Resize', scale=input_shape, keep_ratio=False))
 
     pipeline = [
         transform for transform in pipeline
@@ -160,8 +162,7 @@ class TextDetection(BaseTask):
     def create_input(self,
                      imgs: Union[str, np.ndarray],
                      input_shape: Sequence[int] = None,
-                     data_preprocessor: Optional[BaseDataPreprocessor] = None)\
-            -> Tuple[Dict, torch.Tensor]:
+                     data_preprocessor: Optional[BaseDataPreprocessor] = None) -> Tuple[Dict, torch.Tensor]:
         """Create input for segmentor.
 
         Args:
@@ -203,11 +204,10 @@ class TextDetection(BaseTask):
         data = pseudo_collate(data)
         data['inputs'] = cast_data_device(data['inputs'],
                                           torch.device(self.device))
-        if data_preprocessor is not None:
-            data = data_preprocessor(data, False)
-            return data, data['inputs']
-        else:
+        if data_preprocessor is None:
             return data, BaseTask.get_tensor_from_input(data)
+        data = data_preprocessor(data, False)
+        return data, data['inputs']
 
     def get_visualizer(self, name: str, save_dir: str):
         """Visualize predictions of a model.
@@ -266,7 +266,7 @@ class TextDetection(BaseTask):
 
         if 'data_preprocessor' in model_cfg.model:
             data_preprocessor = model_cfg.model.data_preprocessor
-        elif 'MMDetWrapper' == self.model_cfg.model.type:
+        elif self.model_cfg.model.type == 'MMDetWrapper':
             data_preprocessor = model_cfg.model.cfg.data_preprocessor
         else:
             raise ValueError(f'Unsupported model config {model_cfg.model} ')
@@ -293,7 +293,7 @@ class TextDetection(BaseTask):
         """
         if 'det_head' in self.model_cfg.model:
             postprocess = self.model_cfg.model.det_head
-        elif 'MMDetWrapper' == self.model_cfg.model.type:
+        elif self.model_cfg.model.type == 'MMDetWrapper':
             params = self.model_cfg.model.cfg.test_cfg
             type = 'ResizeInstanceMask'  # default for object detection
             if 'rpn' in params:
@@ -314,5 +314,4 @@ class TextDetection(BaseTask):
             str: the name of the model.
         """
         assert 'type' in self.model_cfg.model, 'model config contains no type'
-        name = self.model_cfg.model.type.lower()
-        return name
+        return self.model_cfg.model.type.lower()

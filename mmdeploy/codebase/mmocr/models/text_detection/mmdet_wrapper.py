@@ -47,10 +47,8 @@ def mmdet_wrapper__forward(self,
     """
     if mode == 'predict':
         ocr_data_samples = data_samples
-        data_samples = []
-        for i in range(len(ocr_data_samples)):
-            data_samples.append(
-                DetDataSample(metainfo=ocr_data_samples[i].metainfo))
-
-    results = self.wrapped_model.forward(inputs, data_samples, mode, **kwargs)
-    return results
+        data_samples = [
+            DetDataSample(metainfo=ocr_data_samples[i].metainfo)
+            for i in range(len(ocr_data_samples))
+        ]
+    return self.wrapped_model.forward(inputs, data_samples, mode, **kwargs)

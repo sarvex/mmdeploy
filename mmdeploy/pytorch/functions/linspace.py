@@ -11,10 +11,10 @@ def linspace__default(start: Number, end: Number, steps: int = None, **kwargs):
     steps = 100 if steps is None else steps
     dtype = kwargs.pop('dtype', torch.float32)
     dtype = dtype if dtype else torch.float32
-    if steps == 1:
-        output = torch.arange(start, end + 1, dtype=dtype, **kwargs)[:steps]
-    else:
-        output = torch.arange(
-            start, end + 1, (end - start) / (steps - 1), dtype=dtype,
-            **kwargs)[:steps]
-    return output
+    return (
+        torch.arange(start, end + 1, dtype=dtype, **kwargs)[:steps]
+        if steps == 1
+        else torch.arange(
+            start, end + 1, (end - start) / (steps - 1), dtype=dtype, **kwargs
+        )[:steps]
+    )

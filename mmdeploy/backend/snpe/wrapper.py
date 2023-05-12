@@ -67,20 +67,18 @@ class RetryOnRpcErrorClientInterceptor(grpc.UnaryUnaryClientInterceptor,
         for try_i in range(self.max_attempts):
             response = continuation(client_call_details, request_or_iterator)
 
-            if isinstance(response, grpc.RpcError):
-
-                # Return if it was last attempt
-                if try_i == (self.max_attempts - 1):
-                    return response
-
-                # If status code is not in retryable status codes
-                if (self.status_for_retry
-                        and response.code() not in self.status_for_retry):
-                    return response
-
-                self.sleeping_policy.sleep(try_i)
-            else:
+            if not isinstance(response, grpc.RpcError):
                 return response
+            # Return if it was last attempt
+            if try_i == (self.max_attempts - 1):
+                return response
+
+            # If status code is not in retryable status codes
+            if (self.status_for_retry
+                    and response.code() not in self.status_for_retry):
+                return response
+
+            self.sleeping_policy.sleep(try_i)
 
     def intercept_unary_unary(self, continuation, client_call_details,
                               request):
@@ -234,7 +232,7 @@ class SNPEWrapper(BaseWrapper):
                 return (0, 1)
             return (0)
 
-        result = dict()
+        result = {}
         if resp.status == 0:
             for tensor in resp.data:
                 ndarray = np.frombuffer(tensor.data, dtype=np.float32)

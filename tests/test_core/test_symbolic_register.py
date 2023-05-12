@@ -69,7 +69,7 @@ def test_symbolic_rewriter():
     x = torch.rand(2, 3, 4)
 
     # default
-    cfg = dict()
+    cfg = {}
     with RewriterContext(cfg=cfg, opset=11):
         torch.onnx.export(model, x, output_file, opset_version=11)
     onnx_model = onnx.load(output_file)

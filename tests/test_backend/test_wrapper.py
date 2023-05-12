@@ -88,8 +88,8 @@ def ir2backend(backend, onnx_file, ts_file):
         from mmdeploy.apis.pplnn import from_onnx
         output_file_prefix = tempfile.NamedTemporaryFile().name
         from_onnx(onnx_file, output_file_prefix=output_file_prefix)
-        algo_file = output_file_prefix + '.json'
-        output_file = output_file_prefix + '.onnx'
+        algo_file = f'{output_file_prefix}.json'
+        output_file = f'{output_file_prefix}.onnx'
         return output_file, algo_file
     elif backend == Backend.NCNN:
         from mmdeploy.backend.ncnn.init_plugins import get_onnx2ncnn_path
@@ -125,7 +125,7 @@ def ir2backend(backend, onnx_file, ts_file):
         backend_dir = tempfile.TemporaryDirectory().name
         work_dir = backend_dir
         file_name = osp.splitext(osp.split(onnx_file)[1])[0]
-        backend_file = osp.join(work_dir, file_name + '.om')
+        backend_file = osp.join(work_dir, f'{file_name}.om')
         model_inputs = mmengine.Config(
             dict(input_shapes=dict(input=test_img.shape)))
         from_onnx(onnx_file, work_dir, model_inputs)

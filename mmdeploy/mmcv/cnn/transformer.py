@@ -107,17 +107,18 @@ def multiheadattention__forward__ncnn(self,
         value = key
     if identity is None:
         identity = query
-    if key_pos is None:
-        if query_pos is not None:
-            # use query_pos if key_pos is not available
-            if query_pos.shape == key.shape:
-                key_pos = query_pos
+    if (
+        key_pos is None
+        and query_pos is not None
+        and query_pos.shape == key.shape
+    ):
+        key_pos = query_pos
     if query_pos is not None:
         query = query + query_pos
     if key_pos is not None:
         key = key + key_pos
 
-    assert query is key and key is value, 'only support query==key==value'
+    assert query is key is value, 'only support query==key==value'
     assert self.batch_first, 'only support batch on first dim'
     assert attn_mask is None
     assert key_padding_mask is None

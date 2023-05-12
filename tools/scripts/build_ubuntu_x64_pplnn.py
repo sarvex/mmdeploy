@@ -88,8 +88,7 @@ def install_mmdeploy(work_dir, pplnn_cmake_dir, pplcv_cmake_dir, build_cuda):
 
     os.system('rm -rf build/CMakeCache.txt')
 
-    cmd = 'cd build && cmake ..'
-    cmd += ' -DMMDEPLOY_BUILD_SDK=ON '
+    cmd = 'cd build && cmake ..' + ' -DMMDEPLOY_BUILD_SDK=ON '
     cmd += ' -DMMDEPLOY_BUILD_EXAMPLES=ON '
     cmd += ' -DMMDEPLOY_BUILD_SDK_PYTHON_API=ON '
     cmd += ' -DMMDEPLOY_TARGET_BACKENDS=pplnn '
@@ -99,11 +98,11 @@ def install_mmdeploy(work_dir, pplnn_cmake_dir, pplcv_cmake_dir, build_cuda):
     else:
         cmd += ' -DMMDEPLOY_TARGET_DEVICES=cpu '
 
-    cmd += ' -Dpplcv_DIR={} '.format(pplcv_cmake_dir)
-    cmd += ' -Dpplnn_DIR={} '.format(pplnn_cmake_dir)
+    cmd += f' -Dpplcv_DIR={pplcv_cmake_dir} '
+    cmd += f' -Dpplnn_DIR={pplnn_cmake_dir} '
     os.system(cmd)
 
-    os.system('cd build && make -j {} && make install'.format(g_jobs))
+    os.system(f'cd build && make -j {g_jobs} && make install')
     os.system('python3 -m pip install -e .')
     try:
         import mmcv
@@ -126,13 +125,13 @@ def main():
     """
     global g_jobs
     g_jobs = get_job(sys.argv)
-    print('g_jobs {}'.format(g_jobs))
+    print(f'g_jobs {g_jobs}')
 
     work_dir = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
     dep_dir = os.path.abspath(os.path.join(work_dir, '..', 'mmdeploy-dep'))
     if not os.path.exists(dep_dir):
         if os.path.isfile(dep_dir):
-            print('{} already exists and it is a file, exit.'.format(work_dir))
+            print(f'{work_dir} already exists and it is a file, exit.')
             return -1
         os.mkdir(dep_dir)
 
@@ -142,9 +141,7 @@ def main():
 
     # install pplcv and pplnn
     nvcc = cmd_result('which nvcc')
-    build_cuda = False
-    if nvcc is not None and len(nvcc) > 1:
-        build_cuda = True
+    build_cuda = nvcc is not None and len(nvcc) > 1
     pplcv_cmake_dir = install_pplcv(dep_dir, build_cuda)
     pplnn_cmake_dir = install_pplnn(dep_dir, build_cuda)
     if install_mmdeploy(work_dir, pplnn_cmake_dir, pplcv_cmake_dir,

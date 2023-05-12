@@ -34,7 +34,7 @@ def tensor__size__ascend(self, *args):
     """
     ctx = FUNCTION_REWRITER.get_context()
 
-    if len(args) != 0:
+    if args:
         index = args[0]
         if index < 0:
             index = self.dim() + index

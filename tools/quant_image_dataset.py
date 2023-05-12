@@ -24,7 +24,7 @@ class QuantizationImageDataset(Dataset):
         self.task_processor = task_processor
 
         self.samples = []
-        self.extensions = tuple(set([i.lower() for i in extensions]))
+        self.extensions = tuple({i.lower() for i in extensions})
         self.file_client = FileClient.infer_client(file_client_args, path)
         self.path = path
 

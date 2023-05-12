@@ -73,6 +73,4 @@ def _prepare_onnx_paddings__tensorrt(g, input, pad):
     ends = sym_help._slice_helper(
         g, paddings, axes=[0], starts=[0], ends=[0xffff], steps=[2])
     paddings = g.op('Concat', begins, ends, axis_i=0)
-    padding_c = g.op(
-        'Cast', paddings, to_i=sym_help.cast_pytorch_to_onnx['Long'])
-    return padding_c
+    return g.op('Cast', paddings, to_i=sym_help.cast_pytorch_to_onnx['Long'])

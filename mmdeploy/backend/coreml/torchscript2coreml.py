@@ -15,12 +15,12 @@ except ImportError:
 
 
 def get_model_suffix(convert_to: str) -> str:
-    assert convert_to == 'neuralnetwork' or convert_to == 'mlprogram'
+    assert convert_to in {'neuralnetwork', 'mlprogram'}
     suffix = ''
-    if convert_to == 'neuralnetwork':
-        suffix = '.mlmodel'
     if convert_to == 'mlprogram':
         suffix = '.mlpackage'
+    elif convert_to == 'neuralnetwork':
+        suffix = '.mlmodel'
     return suffix
 
 
@@ -90,15 +90,11 @@ def from_torchscript(torchscript_model: Union[str,
         torchscript_model = torch.jit.load(torchscript_model)
 
     inputs = []
-    outputs = []
-
     for name in input_names:
         shape = create_shape(name, input_shapes[name])
         inputs.append(shape)
 
-    for name in output_names:
-        outputs.append(ct.TensorType(name=name))
-
+    outputs = [ct.TensorType(name=name) for name in output_names]
     if convert_to == 'neuralnetwork':
         compute_precision = None
     else:

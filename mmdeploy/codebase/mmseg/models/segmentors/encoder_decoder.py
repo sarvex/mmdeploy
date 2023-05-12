@@ -54,9 +54,6 @@ def encoder_decoder__predict__rknn(self, inputs, data_samples, **kwargs):
     Returns:
         torch.Tensor: Output segmentation map pf shape [N, 1, H, W].
     """
-    batch_img_metas = []
-    for data_sample in data_samples:
-        batch_img_metas.append(data_sample.metainfo)
+    batch_img_metas = [data_sample.metainfo for data_sample in data_samples]
     x = self.extract_feat(inputs)
-    seg_logit = self.decode_head.predict(x, batch_img_metas, self.test_cfg)
-    return seg_logit
+    return self.decode_head.predict(x, batch_img_metas, self.test_cfg)

@@ -120,8 +120,9 @@ class TimeCounter:
         if func_name is not None:
             warnings.warn('func_name must be globally unique if you call '
                           'activate multiple times')
-            assert func_name in cls.names, '{} must be registered before '\
-                'setting params'.format(func_name)
+            assert (
+                func_name in cls.names
+            ), f'{func_name} must be registered before setting params'
             cls.names[func_name]['warmup'] = warmup
             cls.names[func_name]['log_interval'] = log_interval
             cls.names[func_name]['with_sync'] = with_sync

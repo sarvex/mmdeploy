@@ -81,16 +81,14 @@ class ModuleRewriter:
 
     def _replace_one_module(self, module, cfg, **kwargs):
         """Build a rewritten model."""
-        # module could be instance of multiple classes
-        object_dict_candidate = dict()
-        for k, v in self._records.items():
-            if isinstance(module, k):
-                object_dict_candidate[k] = v
-        if len(object_dict_candidate) == 0:
+        object_dict_candidate = {
+            k: v for k, v in self._records.items() if isinstance(module, k)
+        }
+        if not object_dict_candidate:
             return module
 
         type_sequence = [type(module)]
-        while len(type_sequence) > 0:
+        while type_sequence:
             # pop if type is object
             module_type = type_sequence.pop(0)
             if module_type == object:
@@ -106,10 +104,7 @@ class ModuleRewriter:
         # Pop arguments that are not supported
         input_args = kwargs.copy()
         supported_args = inspect.getfullargspec(module_class.__init__).args
-        redundant_key_name = []
-        for k in input_args:
-            if k not in supported_args:
-                redundant_key_name.append(k)
+        redundant_key_name = [k for k in input_args if k not in supported_args]
         for k in redundant_key_name:
             input_args.pop(k)
 

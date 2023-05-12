@@ -23,7 +23,7 @@ class TestEnd2EndModel:
         # make sure ONNXRuntimeEditor can use ORTWrapper inside itself
         from mmdeploy.backend.onnxruntime import ORTWrapper
         from mmdeploy.codebase.mmedit.deploy.super_resolution_model import \
-            End2EndModel
+                End2EndModel
 
         # simplify backend inference
         with SwitchBackendWrapper(ORTWrapper) as wrapper:
@@ -34,13 +34,14 @@ class TestEnd2EndModel:
             deploy_cfg = Config({'onnx_config': {'output_names': ['outputs']}})
             model_cfg = 'tests/test_codebase/test_mmedit/data/model.py'
             model_cfg = load_config(model_cfg)[0]
-            model = End2EndModel(
-                Backend.ONNXRUNTIME, [''],
+            yield End2EndModel(
+                Backend.ONNXRUNTIME,
+                [''],
                 'cpu',
                 model_cfg,
                 deploy_cfg,
-                data_preprocessor=model_cfg.model.data_preprocessor)
-            yield model
+                data_preprocessor=model_cfg.model.data_preprocessor,
+            )
 
     def test_forward(self, end2end_model):
         input_img = torch.rand(1, 3, 32, 32)

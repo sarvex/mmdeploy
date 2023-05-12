@@ -38,16 +38,14 @@ def install_libtorch(dep_dir):
     else:
         version_name = 'cpu'
 
-    filename = 'libtorch-shared-with-deps-{}%2B{}.zip'.format(
-        torch_version, version_name)
-    url = 'https://download.pytorch.org/libtorch/{}/{}'.format(
-        version_name, filename)
-    os.system('wget -q --show-progress {} -O libtorch.zip'.format(url))
+    filename = f'libtorch-shared-with-deps-{torch_version}%2B{version_name}.zip'
+    url = f'https://download.pytorch.org/libtorch/{version_name}/{filename}'
+    os.system(f'wget -q --show-progress {url} -O libtorch.zip')
     os.system('unzip libtorch.zip')
     if not os.path.exists(unzipped_name):
         print(
-            'download or unzip libtorch from {} failed, please check https://pytorch.org/get-started/locally/'  # noqa: E501
-            .format(url))
+            f'download or unzip libtorch from {url} failed, please check https://pytorch.org/get-started/locally/'
+        )
         return None
     return os.path.join(dep_dir, unzipped_name)
 
@@ -65,16 +63,15 @@ def install_mmdeploy(work_dir, libtorch_dir):
 
     os.system('rm -rf build/CMakeCache.txt')
 
-    cmd = 'cd build &&  Torch_DIR={} cmake ..'.format(libtorch_dir)
-    cmd += ' -DMMDEPLOY_BUILD_SDK=ON '
+    cmd = f'cd build &&  Torch_DIR={libtorch_dir} cmake .. -DMMDEPLOY_BUILD_SDK=ON '
     cmd += ' -DMMDEPLOY_BUILD_EXAMPLES=ON '
     cmd += ' -DMMDEPLOY_BUILD_SDK_PYTHON_API=ON '
     cmd += ' -DMMDEPLOY_TARGET_DEVICES=cpu '
     cmd += ' -DMMDEPLOY_TARGET_BACKENDS=torchscript '
-    cmd += ' -DTORCHSCRIPT_DIR={} '.format(libtorch_dir)
+    cmd += f' -DTORCHSCRIPT_DIR={libtorch_dir} '
     os.system(cmd)
 
-    os.system('cd build && make -j {} && make install'.format(g_jobs))
+    os.system(f'cd build && make -j {g_jobs} && make install')
     os.system('python3 -m pip install -e .')
     try:
         import mmcv
@@ -97,13 +94,13 @@ def main():
     """
     global g_jobs
     g_jobs = get_job(sys.argv)
-    print('g_jobs {}'.format(g_jobs))
+    print(f'g_jobs {g_jobs}')
 
     work_dir = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
     dep_dir = os.path.abspath(os.path.join(work_dir, '..', 'mmdeploy-dep'))
     if not os.path.exists(dep_dir):
         if os.path.isfile(dep_dir):
-            print('{} already exists and it is a file, exit.'.format(work_dir))
+            print(f'{work_dir} already exists and it is a file, exit.')
             return -1
         os.mkdir(dep_dir)
 

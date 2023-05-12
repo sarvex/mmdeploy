@@ -39,8 +39,8 @@ def from_onnx(onnx_model: str,
         input_shapes = [[1, 3, 224,
                          224]]  # PPLNN default shape for optimization
 
-    algo_file = output_file_prefix + '.json'
-    onnx_output_path = output_file_prefix + '.onnx'
+    algo_file = f'{output_file_prefix}.json'
+    onnx_output_path = f'{output_file_prefix}.onnx'
     engines = register_engines(
         device_id,
         disable_avx512=False,

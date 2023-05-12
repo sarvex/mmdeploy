@@ -14,24 +14,22 @@ def adaptive_avg_pool2d__default(input, output_size):
     ctx = FUNCTION_REWRITER.get_context()
     output_size = _pair(output_size)
     if int(output_size[0]) == int(output_size[1]) == 1:
-        out = ctx.origin_func(input, output_size)
-    else:
-        deploy_cfg = ctx.cfg
-        is_dynamic_flag = is_dynamic_shape(deploy_cfg)
-        if is_dynamic_flag:
-            logger = get_root_logger()
-            logger.warning('`adaptive_avg_pool2d` would be '
-                           'replaced to `avg_pool2d` explicitly')
-        size = input.shape[2:]
-        k = [int(size[i] / output_size[i]) for i in range(0, len(size))]
-        out = F.avg_pool2d(
-            input,
-            kernel_size=k,
-            stride=k,
-            padding=0,
-            ceil_mode=False,
-            count_include_pad=False)
-    return out
+        return ctx.origin_func(input, output_size)
+    deploy_cfg = ctx.cfg
+    if is_dynamic_flag := is_dynamic_shape(deploy_cfg):
+        logger = get_root_logger()
+        logger.warning('`adaptive_avg_pool2d` would be '
+                       'replaced to `avg_pool2d` explicitly')
+    size = input.shape[2:]
+    k = [int(size[i] / output_size[i]) for i in range(0, len(size))]
+    return F.avg_pool2d(
+        input,
+        kernel_size=k,
+        stride=k,
+        padding=0,
+        ceil_mode=False,
+        count_include_pad=False,
+    )
 
 
 @FUNCTION_REWRITER.register_rewriter(

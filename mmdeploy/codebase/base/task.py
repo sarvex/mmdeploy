@@ -243,10 +243,12 @@ class BaseTask(metaclass=ABCMeta):
             mmengine.Config: The updated data preprocessor.
         """
         data_preprocessor = deepcopy(data_preprocessor)
-        if get_rknn_quantization(self.deploy_cfg):
-            if data_preprocessor is not None:
-                data_preprocessor['mean'] = [0, 0, 0]
-                data_preprocessor['std'] = [1, 1, 1]
+        if (
+            get_rknn_quantization(self.deploy_cfg)
+            and data_preprocessor is not None
+        ):
+            data_preprocessor['mean'] = [0, 0, 0]
+            data_preprocessor['std'] = [1, 1, 1]
         return data_preprocessor
 
     @abstractmethod

@@ -52,8 +52,7 @@ def get_output_model_file(onnx_path: str, work_dir: str) -> str:
     """
     mmengine.mkdir_or_exist(osp.abspath(work_dir))
     file_name = osp.splitext(osp.split(onnx_path)[1])[0]
-    model_xml = osp.join(work_dir, file_name + '.xml')
-    return model_xml
+    return osp.join(work_dir, f'{file_name}.xml')
 
 
 def from_onnx(onnx_model: Union[str, onnx.ModelProto],

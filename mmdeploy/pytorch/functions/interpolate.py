@@ -25,8 +25,8 @@ def interpolate__ncnn(input: torch.Tensor,
     """
     ctx = FUNCTION_REWRITER.get_context()
 
-    input_size = input.shape
     if scale_factor is None:
+        input_size = input.shape
         scale_factor = [
             s_out / s_in for s_out, s_in in zip(size, input_size[2:])
         ]
@@ -56,8 +56,8 @@ def interpolate__rknn(input: torch.Tensor,
     instead of `size` to avoid dynamic size.
     """
     ctx = FUNCTION_REWRITER.get_context()
-    input_size = input.shape
     if scale_factor is None:
+        input_size = input.shape
         scale_factor = [(s_out / s_in)
                         for s_out, s_in in zip(size, input_size[2:])]
         if isinstance(scale_factor[0], torch.Tensor):
@@ -111,22 +111,7 @@ def interpolate__tensorrt(
                 mode='bicubic',
                 align_corners=align_corners)
 
-    if 'bicubic' == mode:
-        input_size = input.shape
-        if isinstance(scale_factor, float):
-            scale_factor = [scale_factor, scale_factor]
-        if scale_factor is None:
-            logger = get_root_logger()
-            logger.warning(
-                'ResizeLayer in TensorRT allow dynamic input shape with shape '
-                'tensor. Which is not available for custom ops. Computed scale'
-                '_factor might be the right way to get final shape.')
-            scale_factor = [
-                float(s_out / s_in)
-                for s_out, s_in in zip(size, input_size[2:])
-            ]
-        return BicubicInterpolate.apply(input, scale_factor, align_corners)
-    else:
+    if mode != 'bicubic':
         return ctx.origin_func(
             input,
             size=size,
@@ -134,3 +119,17 @@ def interpolate__tensorrt(
             mode=mode,
             align_corners=align_corners,
             recompute_scale_factor=recompute_scale_factor)
+    if isinstance(scale_factor, float):
+        scale_factor = [scale_factor, scale_factor]
+    if scale_factor is None:
+        logger = get_root_logger()
+        logger.warning(
+            'ResizeLayer in TensorRT allow dynamic input shape with shape '
+            'tensor. Which is not available for custom ops. Computed scale'
+            '_factor might be the right way to get final shape.')
+        input_size = input.shape
+        scale_factor = [
+            float(s_out / s_in)
+            for s_out, s_in in zip(size, input_size[2:])
+        ]
+    return BicubicInterpolate.apply(input, scale_factor, align_corners)

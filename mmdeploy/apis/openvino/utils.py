@@ -45,8 +45,7 @@ def get_input_info_from_cfg(deploy_cfg: mmengine.Config) -> Dict[str, List]:
     input_info = model_inputs['opt_shapes']
     ir_config = get_ir_config(deploy_cfg)
     if ir_config is not None:
-        input_names = ir_config.get('input_names', None)
-        if input_names:
+        if input_names := ir_config.get('input_names', None):
             if not isinstance(input_info, Dict):
                 input_info = dict(zip(input_names, input_info))
             input_info = update_input_names(input_info, input_names)

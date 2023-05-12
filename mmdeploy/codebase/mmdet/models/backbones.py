@@ -107,12 +107,7 @@ def windowmsa__forward__tensorrt(self, x, mask=None):
                          N) + mask.unsqueeze(1).unsqueeze(0)
         attn = attn.view(-1, self.num_heads, N, N)
 
-    # replace softmax with a workaround
-    # weird bug from TensorRT. softmax cannot be used here for fp32 and it
-    # can be used in fp16, but softmax fp16 performance is not as good as
-    # exp and log_softmax. Besides, only the UT of exp and log_softmax passed.
-    fp16_mode = get_common_config(ctx.cfg).get('fp16_mode', False)
-    if fp16_mode:
+    if fp16_mode := get_common_config(ctx.cfg).get('fp16_mode', False):
         attn = torch.exp(torch.log_softmax(attn, dim=self.softmax.dim))
     else:
         means = torch.mean(attn, self.softmax.dim, keepdim=True)[0]
@@ -235,9 +230,9 @@ def shift_window_msa__forward__default(self, query, hw_shape):
         mask_windows = mask_windows.view(-1,
                                          self.window_size * self.window_size)
         attn_mask = mask_windows.unsqueeze(1) - mask_windows.unsqueeze(2)
-        attn_mask = attn_mask.masked_fill(attn_mask != 0,
-                                          float(-100.0)).masked_fill(
-                                              attn_mask == 0, float(0.0))
+        attn_mask = attn_mask.masked_fill(attn_mask != 0, -100.0).masked_fill(
+            attn_mask == 0, 0.0
+        )
     else:
         shifted_query = query
         attn_mask = None

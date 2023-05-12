@@ -28,7 +28,7 @@ file_client_args = dict(backend='disk')
 
 db_sampler = dict(
     data_root=data_root,
-    info_path=data_root + 'nuscenes_dbinfos_train.pkl',
+    info_path=f'{data_root}nuscenes_dbinfos_train.pkl',
     rate=1.0,
     prepare=dict(
         filter_by_difficulty=[-1],
@@ -42,7 +42,9 @@ db_sampler = dict(
             barrier=5,
             motorcycle=5,
             bicycle=5,
-            pedestrian=5)),
+            pedestrian=5,
+        ),
+    ),
     classes=class_names,
     sample_groups=dict(
         car=2,
@@ -54,12 +56,15 @@ db_sampler = dict(
         motorcycle=6,
         bicycle=6,
         pedestrian=2,
-        traffic_cone=2),
+        traffic_cone=2,
+    ),
     points_loader=dict(
         type='LoadPointsFromFile',
         coord_type='LIDAR',
         load_dim=5,
-        use_dim=[0, 1, 2, 3, 4]))
+        use_dim=[0, 1, 2, 3, 4],
+    ),
+)
 
 train_pipeline = [
     dict(type='LoadPointsFromFile', coord_type='LIDAR', load_dim=5, use_dim=5),

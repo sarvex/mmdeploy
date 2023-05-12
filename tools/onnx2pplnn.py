@@ -26,9 +26,7 @@ def parse_args():
         help='set log level',
         default='INFO',
         choices=list(logging._nameToLevel.keys()))
-    args = parser.parse_args()
-
-    return args
+    return parser.parse_args()
 
 
 def main():
@@ -43,9 +41,9 @@ def main():
     assert isinstance(
         input_shapes, collections.Sequence), \
         'The opt-shape must be a sequence.'
-    assert isinstance(input_shapes[0], int) or (isinstance(
-        input_shapes[0], collections.Sequence)), \
-        'The opt-shape must be a sequence of int or a sequence of sequence.'
+    assert isinstance(
+        input_shapes[0], (int, collections.Sequence)
+    ), 'The opt-shape must be a sequence of int or a sequence of sequence.'
     if isinstance(input_shapes[0], int):
         input_shapes = [input_shapes]
 

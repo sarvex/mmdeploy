@@ -38,8 +38,7 @@ class FPNCNeckModel(FPNC):
         neck_inputs = [
             inputs.repeat([1, channel, 1, 1]) for channel in self.in_channels
         ]
-        output = self.neck.forward(neck_inputs)
-        return output
+        return self.neck.forward(neck_inputs)
 
 
 def get_bidirectionallstm_model():
@@ -425,23 +424,24 @@ def test_sar_model(backend: Backend, decoder_type):
     patched_model = patch_model(
         pytorch_model, cfg=deploy_cfg, backend=backend.value)
     onnx_file_path = tempfile.NamedTemporaryFile(suffix='.onnx').name
-    input_names = [k for k, v in model_inputs.items() if k != 'ctx']
+    input_names = [k for k in model_inputs if k != 'ctx']
     # model_forward = patched_model.forward
     # from functools import partial
     # patched_model.forward = partial(patched_model.forward,
     #                                 **{'data_samples': [data_sample]})
-    with RewriterContext(
-            cfg=deploy_cfg, backend=backend.value), torch.no_grad():
+    with (RewriterContext(
+                cfg=deploy_cfg, backend=backend.value), torch.no_grad()):
         torch.onnx.export(
             patched_model,
-            tuple([v for k, v in model_inputs.items()]),
+            tuple(v for k, v in model_inputs.items()),
             onnx_file_path,
             export_params=True,
             input_names=input_names,
             output_names=None,
             opset_version=11,
             dynamic_axes=None,
-            keep_initializers_as_inputs=False)
+            keep_initializers_as_inputs=False,
+        )
 
     # The result should be different due to the rewrite.
     # So we only check if the file exists

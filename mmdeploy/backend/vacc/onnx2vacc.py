@@ -22,7 +22,7 @@ def from_onnx(onnx_model: str, output_path: str, model_input: dict,
     target = tvm.target.vacc()
 
     quant_mode = model_input.get('qconfig', {}).get('dtype', 'fp16')
-    assert quant_mode in ['int8', 'fp16'], quant_mode + ' not support now'
+    assert quant_mode in ['int8', 'fp16'], f'{quant_mode} not support now'
 
     shape_dict = model_input['shape']
     mod, params = relay.frontend.from_onnx(onnx.load(onnx_model), shape_dict)
@@ -36,17 +36,17 @@ def from_onnx(onnx_model: str, output_path: str, model_input: dict,
         import h5py
         data = h5py.File(osp.join(output_path, 'calib_data.h5'),
                          'r')['calib_data']['input']
-        calib_data = []
-
         index = list(range(len(data)))
         random.shuffle(index)
         calib_num = model_input.get('qconfig', {}).get('calib_num', 1000)
-        for i in index[:calib_num]:
-            calib_data.append({
-                list(shape_dict.keys())[0]:
-                tvm.nd.array(data[str(i)][:].astype('float32'))
-            })
-
+        calib_data = [
+            {
+                list(shape_dict.keys())[0]: tvm.nd.array(
+                    data[str(i)][:].astype('float32')
+                )
+            }
+            for i in index[:calib_num]
+        ]
         with quantize.qconfig(
                 calibrate_mode=model_input.get('qconfig',
                                                {}).get('calibrate_mode',
@@ -85,21 +85,22 @@ def from_onnx(onnx_model: str, output_path: str, model_input: dict,
     if not osp.exists(output_root):
         os.makedirs(output_root)
 
-    libpath = os.path.join(output_root, model_name + '.so')
+    libpath = os.path.join(output_root, f'{model_name}.so')
     lib.export_library(libpath)
 
-    graph_json_path = os.path.join(output_root, model_name + '.json')
+    graph_json_path = os.path.join(output_root, f'{model_name}.json')
     with open(graph_json_path, 'w') as f:
         f.write(graph)
 
-    param_path = os.path.join(output_root, model_name + '.params')
+    param_path = os.path.join(output_root, f'{model_name}.params')
     with open(param_path, 'wb') as f:
         f.write(relay.save_param_dict(params))
 
-    assert osp.exists(os.path.join(output_root,
-                                   model_name + '.params')), 'onnx2vacc failed'
+    assert osp.exists(
+        os.path.join(output_root, f'{model_name}.params')
+    ), 'onnx2vacc failed'
     return [
-        os.path.join(output_root, model_name + '.so'),
-        os.path.join(output_root, model_name + '.json'),
-        os.path.join(output_root, model_name + '.params')
+        os.path.join(output_root, f'{model_name}.so'),
+        os.path.join(output_root, f'{model_name}.json'),
+        os.path.join(output_root, f'{model_name}.params'),
     ]

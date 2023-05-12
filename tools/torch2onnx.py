@@ -27,9 +27,7 @@ def parse_args():
         help='set log level',
         default='INFO',
         choices=list(logging._nameToLevel.keys()))
-    args = parser.parse_args()
-
-    return args
+    return parser.parse_args()
 
 
 def main():

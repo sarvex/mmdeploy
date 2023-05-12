@@ -40,10 +40,17 @@ def deltaxywhbboxcoder__decode(self,
         assert pred_bboxes.size(1) == bboxes.size(1)
     from mmdet.models.task_modules.coders.delta_xywh_bbox_coder import \
         delta2bbox
-    decoded_bboxes = delta2bbox(bboxes, pred_bboxes, self.means, self.stds,
-                                max_shape, wh_ratio_clip, self.clip_border,
-                                self.add_ctr_clamp, self.ctr_clamp)
-    return decoded_bboxes
+    return delta2bbox(
+        bboxes,
+        pred_bboxes,
+        self.means,
+        self.stds,
+        max_shape,
+        wh_ratio_clip,
+        self.clip_border,
+        self.add_ctr_clamp,
+        self.ctr_clamp,
+    )
 
 
 @FUNCTION_REWRITER.register_rewriter(
@@ -133,8 +140,7 @@ def delta2bbox(rois,
         from mmdeploy.codebase.mmdet.deploy import clip_bboxes
         x1, y1, x2, y2 = clip_bboxes(x1, y1, x2, y2, max_shape)
 
-    bboxes = torch.stack([x1, y1, x2, y2], dim=-1).view(deltas.size())
-    return bboxes
+    return torch.stack([x1, y1, x2, y2], dim=-1).view(deltas.size())
 
 
 @FUNCTION_REWRITER.register_rewriter(
@@ -225,5 +231,4 @@ def delta2bbox__ncnn(rois,
         from mmdeploy.codebase.mmdet.deploy import clip_bboxes
         x1, y1, x2, y2 = clip_bboxes(x1, y1, x2, y2, max_shape)
 
-    bboxes = torch.stack([x1, y1, x2, y2], dim=-1).view(deltas.size())
-    return bboxes
+    return torch.stack([x1, y1, x2, y2], dim=-1).view(deltas.size())

@@ -80,7 +80,7 @@ class TestRKNNModel:
         })
 
         from mmdeploy.codebase.mmseg.deploy.segmentation_model import RKNNModel
-        class_names = ['' for i in range(NUM_CLASS)]
+        class_names = ['' for _ in range(NUM_CLASS)]
         palette = np.random.randint(0, 255, size=(NUM_CLASS, 3))
         cls.rknn_model = RKNNModel(
             Backend.RKNN, [''],

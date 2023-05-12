@@ -58,19 +58,20 @@ def process_model_config(model_cfg: Config,
     if isinstance(imgs[0], str):
         if cfg.test_pipeline[0]['type'] != 'LoadImageFromFile':
             cfg.test_pipeline.insert(0, dict(type='LoadImageFromFile'))
-    else:
-        if cfg.test_pipeline[0]['type'] == 'LoadImageFromFile':
-            cfg.test_pipeline.pop(0)
+    elif cfg.test_pipeline[0]['type'] == 'LoadImageFromFile':
+        cfg.test_pipeline.pop(0)
     # check whether input_shape is valid
     if input_shape is not None:
         for pipeline_component in cfg.test_pipeline:
-            if 'Crop' in pipeline_component['type']:
-                if 'crop_size' in pipeline_component:
-                    crop_size = pipeline_component['crop_size']
-                    if tuple(input_shape) != (crop_size, crop_size):
-                        logger = get_root_logger()
-                        logger.warning(
-                            f'`input shape` should be equal to `crop_size`: {crop_size},\
+            if (
+                'Crop' in pipeline_component['type']
+                and 'crop_size' in pipeline_component
+            ):
+                crop_size = pipeline_component['crop_size']
+                if tuple(input_shape) != (crop_size, crop_size):
+                    logger = get_root_logger()
+                    logger.warning(
+                        f'`input shape` should be equal to `crop_size`: {crop_size},\
                                 but given: {input_shape}')
     return cfg
 
@@ -193,7 +194,7 @@ class Classification(BaseTask):
         if not isinstance(imgs, (list, tuple)):
             imgs = [imgs]
         assert 'test_pipeline' in self.model_cfg, \
-            f'test_pipeline not found in {self.model_cfg}.'
+                f'test_pipeline not found in {self.model_cfg}.'
         model_cfg = process_model_config(self.model_cfg, imgs, input_shape)
         pipeline = deepcopy(model_cfg.test_pipeline)
         move_pipeline = []
@@ -206,20 +207,16 @@ class Classification(BaseTask):
         data = []
         for img in imgs:
             # prepare data
-            if isinstance(img, str):
-                data_ = dict(img_path=img)
-            else:
-                data_ = dict(img=img)
+            data_ = dict(img_path=img) if isinstance(img, str) else dict(img=img)
             # build the data pipeline
             data_ = pipeline(data_)
             data.append(data_)
 
         data = pseudo_collate(data)
-        if data_preprocessor is not None:
-            data = data_preprocessor(data, False)
-            return data, data['inputs']
-        else:
+        if data_preprocessor is None:
             return data, BaseTask.get_tensor_from_input(data)
+        data = data_preprocessor(data, False)
+        return data, data['inputs']
 
     def get_visualizer(self, name: str, save_dir: str):
         """Get mmcls visualizer.
@@ -352,5 +349,4 @@ class Classification(BaseTask):
         'config'
         assert 'type' in self.model_cfg.model.backbone, 'backbone contains '
         'no type'
-        name = self.model_cfg.model.backbone.type.lower()
-        return name
+        return self.model_cfg.model.backbone.type.lower()

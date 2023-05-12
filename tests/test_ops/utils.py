@@ -37,7 +37,7 @@ class TestOnnxRTExporter:
         if save_dir is None:
             onnx_file_path = tempfile.NamedTemporaryFile().name
         else:
-            onnx_file_path = os.path.join(save_dir, model_name + '.onnx')
+            onnx_file_path = os.path.join(save_dir, f'{model_name}.onnx')
 
         with torch.no_grad():
             torch.onnx.export(
@@ -95,8 +95,8 @@ class TestTensorRTExporter:
             trt_file_path = tempfile.NamedTemporaryFile(suffix='.engine').name
         else:
             os.makedirs(save_dir, exist_ok=True)
-            onnx_file_path = os.path.join(save_dir, model_name + '.onnx')
-            trt_file_path = os.path.join(save_dir, model_name + '.engine')
+            onnx_file_path = os.path.join(save_dir, f'{model_name}.onnx')
+            trt_file_path = os.path.join(save_dir, f'{model_name}.engine')
         input_list = [data.cuda() for data in input_list]
         if isinstance(model, onnx.onnx_ml_pb2.ModelProto):
             onnx.save(model, onnx_file_path)
@@ -182,9 +182,9 @@ class TestNCNNExporter:
             ncnn_param_path = tempfile.NamedTemporaryFile().name
             ncnn_bin_path = tempfile.NamedTemporaryFile().name
         else:
-            onnx_file_path = os.path.join(save_dir, model_name + '.onnx')
-            ncnn_param_path = os.path.join(save_dir, model_name + '.param')
-            ncnn_bin_path = os.path.join(save_dir, model_name + '.bin')
+            onnx_file_path = os.path.join(save_dir, f'{model_name}.onnx')
+            ncnn_param_path = os.path.join(save_dir, f'{model_name}.param')
+            ncnn_bin_path = os.path.join(save_dir, f'{model_name}.bin')
 
         with torch.no_grad():
             torch.onnx.export(
@@ -222,9 +222,9 @@ class TestNCNNExporter:
         if model_name.startswith('topk_no_sorted'):
             dim = int(model_name.split('_')[-1])
             model_outputs = torch.stack(model_outputs, dim=-1).\
-                sort(dim=dim).values
+                    sort(dim=dim).values
             ncnn_outputs = torch.stack(ncnn_outputs, dim=-1).\
-                sort(dim=dim).values
+                    sort(dim=dim).values
             assert_allclose([model_outputs], [ncnn_outputs],
                             tolerate_small_mismatch)
         else:
@@ -234,9 +234,9 @@ class TestNCNNExporter:
     def onnx2ncnn(self, model, model_name, output_names, save_dir=None):
 
         def _from_onnx(self, model, model_name, output_names, save_dir=None):
-            onnx_file_path = os.path.join(save_dir, model_name + '.onnx')
-            ncnn_param_path = os.path.join(save_dir, model_name + '.param')
-            ncnn_bin_path = os.path.join(save_dir, model_name + '.bin')
+            onnx_file_path = os.path.join(save_dir, f'{model_name}.onnx')
+            ncnn_param_path = os.path.join(save_dir, f'{model_name}.param')
+            ncnn_bin_path = os.path.join(save_dir, f'{model_name}.bin')
 
             onnx.save_model(model, onnx_file_path)
 

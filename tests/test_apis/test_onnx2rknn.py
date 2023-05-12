@@ -43,14 +43,16 @@ def generate_onnx_file(model):
 
 
 def get_deploy_cfg():
-    deploy_cfg = mmengine.Config(
+    return mmengine.Config(
         dict(
             backend_config=dict(
                 type='rknn',
-                common_config=dict(),
+                common_config={},
                 quantization_config=dict(do_quantization=False, dataset=None),
-                input_size_list=[[3, 8, 8]])))
-    return deploy_cfg
+                input_size_list=[[3, 8, 8]],
+            )
+        )
+    )
 
 
 @backend_checker(Backend.RKNN)

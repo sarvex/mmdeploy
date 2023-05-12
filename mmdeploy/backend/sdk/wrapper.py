@@ -14,7 +14,7 @@ class SDKWrapper(BaseWrapper):
         device_id = parse_device_id(device)
         device_type = parse_device_type(device)
         # sdk does not support -1 device id
-        device_id = 0 if device_id < 0 else device_id
+        device_id = max(device_id, 0)
         self.handle = creator(model_file, device_type, device_id)
 
     @TimeCounter.count_time(Backend.SDK.value)

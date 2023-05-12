@@ -251,7 +251,7 @@ def build_segmentation_model(
     backend = get_backend(deploy_cfg)
     model_type = get_codebase_config(deploy_cfg).get('model_type', 'end2end')
 
-    backend_segmentor = __BACKEND_MODEL.build(
+    return __BACKEND_MODEL.build(
         dict(
             type=model_type,
             backend=backend,
@@ -259,6 +259,6 @@ def build_segmentation_model(
             device=device,
             deploy_cfg=deploy_cfg,
             data_preprocessor=data_preprocessor,
-            **kwargs))
-
-    return backend_segmentor
+            **kwargs
+        )
+    )

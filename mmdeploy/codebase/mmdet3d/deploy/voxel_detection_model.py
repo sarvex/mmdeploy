@@ -94,13 +94,12 @@ class VoxelDetectionModel(BaseBackendModel):
         if data_samples is None:
             return outputs
 
-        prediction = VoxelDetectionModel.postprocess(
+        return VoxelDetectionModel.postprocess(
             model_cfg=self.model_cfg,
             deploy_cfg=self.deploy_cfg,
             outs=outputs,
-            metas=data_samples)
-
-        return prediction
+            metas=data_samples,
+        )
 
     def show_result(self,
                     data: Dict,
@@ -245,8 +244,9 @@ class VoxelDetectionModel(BaseBackendModel):
                 batch_input_metas=batch_input_metas,
                 cfg=cfg)
 
-            data_samples = VoxelDetectionModel.convert_to_datasample(
-                data_samples=metas, data_instances_3d=data_instances_3d)
+            return VoxelDetectionModel.convert_to_datasample(
+                data_samples=metas, data_instances_3d=data_instances_3d
+            )
 
         else:
             pts = model_cfg.model.test_cfg.pts
@@ -273,14 +273,19 @@ class VoxelDetectionModel(BaseBackendModel):
                 batch_hei = bbox_pred[:, bbox_range[task_id] +
                                       2:bbox_range[task_id] + 3, ...]
 
-                if head.norm_bbox:
-                    batch_dim = torch.exp(bbox_pred[:, bbox_range[task_id] +
-                                                    3:bbox_range[task_id] + 6,
-                                                    ...])
-                else:
-                    batch_dim = bbox_pred[:, bbox_range[task_id] +
-                                          3:bbox_range[task_id] + 6, ...]
-
+                batch_dim = (
+                    torch.exp(
+                        bbox_pred[
+                            :,
+                            bbox_range[task_id] + 3 : bbox_range[task_id] + 6,
+                            ...,
+                        ]
+                    )
+                    if head.norm_bbox
+                    else bbox_pred[
+                        :, bbox_range[task_id] + 3 : bbox_range[task_id] + 6, ...
+                    ]
+                )
                 batch_vel = bbox_pred[:, bbox_range[task_id] +
                                       6:bbox_range[task_id + 1], ...]
 
@@ -348,23 +353,22 @@ class VoxelDetectionModel(BaseBackendModel):
                         bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 5] * 0.5
                         bboxes = batch_input_metas[i]['box_type_3d'](
                             bboxes, head.bbox_coder.code_size)
-                    elif k == 'scores':
-                        scores = torch.cat([ret[i][k] for ret in rets])
                     elif k == 'labels':
                         flag = 0
                         for j, num_class in enumerate(head.num_classes):
                             rets[j][i][k] += flag
                             flag += num_class
                         labels = torch.cat([ret[i][k].int() for ret in rets])
+                    elif k == 'scores':
+                        scores = torch.cat([ret[i][k] for ret in rets])
                 temp_instances.bboxes_3d = bboxes
                 temp_instances.scores_3d = scores
                 temp_instances.labels_3d = labels
                 ret_list.append(temp_instances)
 
-            data_samples = VoxelDetectionModel.convert_to_datasample(
-                metas, data_instances_3d=ret_list)
-
-        return data_samples
+            return VoxelDetectionModel.convert_to_datasample(
+                metas, data_instances_3d=ret_list
+            )
 
 
 def build_voxel_detection_model(
@@ -395,7 +399,7 @@ def build_voxel_detection_model(
     backend = get_backend(deploy_cfg)
     model_type = get_codebase_config(deploy_cfg).get('model_type', 'end2end')
 
-    backend_detector = __BACKEND_MODEL.build(
+    return __BACKEND_MODEL.build(
         dict(
             type=model_type,
             backend=backend,
@@ -404,6 +408,6 @@ def build_voxel_detection_model(
             model_cfg=model_cfg,
             deploy_cfg=deploy_cfg,
             data_preprocessor=data_preprocessor,
-            **kwargs))
-
-    return backend_detector
+            **kwargs
+        )
+    )

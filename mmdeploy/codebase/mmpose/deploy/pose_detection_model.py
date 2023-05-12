@@ -93,7 +93,7 @@ class End2EndModel(BaseBackendModel):
             list: A list contains predictions.
         """
         assert mode == 'predict', \
-            'Backend model only support mode==predict,' f' but get {mode}'
+                'Backend model only support mode==predict,' f' but get {mode}'
         inputs = inputs.contiguous().to(self.device)
         batch_outputs = self.wrapper({self.input_name: inputs})
         batch_outputs = self.wrapper.output_to_list(batch_outputs)
@@ -107,8 +107,7 @@ class End2EndModel(BaseBackendModel):
             preds = self.head.decode(batch_outputs)
         else:
             preds = self.head.decode(batch_outputs[0])
-        results = self.pack_result(preds, data_samples)
-        return results
+        return self.pack_result(preds, data_samples)
 
     def pack_result(self,
                     preds: Sequence[InstanceData],
@@ -199,9 +198,9 @@ class SDKEnd2EndModel(End2EndModel):
                 keypoint_scores=keypoints[..., 2])
             pred_results.append(pred)
 
-        results = self.pack_result(
-            pred_results, data_samples, convert_coordinate=False)
-        return results
+        return self.pack_result(
+            pred_results, data_samples, convert_coordinate=False
+        )
 
 
 def build_pose_detection_model(
@@ -238,7 +237,7 @@ def build_pose_detection_model(
         dp_type = dp.pop('type')
         assert dp_type == 'PoseDataPreprocessor'
         data_preprocessor = PoseDataPreprocessor(**dp)
-    backend_pose_model = __BACKEND_MODEL.build(
+    return __BACKEND_MODEL.build(
         dict(
             type=model_type,
             backend=backend,
@@ -247,6 +246,6 @@ def build_pose_detection_model(
             deploy_cfg=deploy_cfg,
             model_cfg=model_cfg,
             data_preprocessor=data_preprocessor,
-            **kwargs))
-
-    return backend_pose_model
+            **kwargs
+        )
+    )

@@ -9,15 +9,15 @@ from mmdeploy.core import FUNCTION_REWRITER
 )
 def mvxtwostagedetector__extract_img_feat(self, img: torch.Tensor) -> dict:
     """Extract features of images."""
-    if self.with_img_backbone and img is not None:
-        if img.dim() == 5 and img.size(0) == 1:
+    if not self.with_img_backbone or img is None:
+        return None
+    if img.dim() == 5:
+        if img.size(0) == 1:
             img.squeeze_()
-        elif img.dim() == 5 and img.size(0) > 1:
+        elif img.size(0) > 1:
             B, N, C, H, W = img.size()
             img = img.view(B * N, C, H, W)
-        img_feats = self.img_backbone(img)
-    else:
-        return None
+    img_feats = self.img_backbone(img)
     if self.with_img_neck:
         img_feats = self.img_neck(img_feats)
     return img_feats
@@ -70,9 +70,9 @@ def mvxtwostagedetector__forward(self, inputs: list, **kwargs):
     if type(outs[0][0]) is dict:
         bbox_preds, scores, dir_scores = [], [], []
         for task_res in outs:
-            bbox_preds.append(task_res[0]['reg'])
-            bbox_preds.append(task_res[0]['height'])
-            bbox_preds.append(task_res[0]['dim'])
+            bbox_preds.extend(
+                (task_res[0]['reg'], task_res[0]['height'], task_res[0]['dim'])
+            )
             if 'vel' in task_res[0].keys():
                 bbox_preds.append(task_res[0]['vel'])
             scores.append(task_res[0]['heatmap'])

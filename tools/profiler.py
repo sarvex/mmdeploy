@@ -58,8 +58,7 @@ def parse_args():
         nargs='+',
         help='the file extensions for input images from `image_dir`.',
         default=['.jpg', '.jpeg', '.png', '.ppm', '.bmp', '.pgm', '.tif'])
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def get_images(image_dir, extensions):

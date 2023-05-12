@@ -28,7 +28,7 @@ def test_module_rewriter():
     result = bottle_neck(x)
 
     # rewrite module
-    cfg = dict()
+    cfg = {}
 
     rewritten_model = patch_model(model, cfg=cfg, backend='tensorrt')
     rewritten_bottle_nect = rewritten_model.layer1[0]

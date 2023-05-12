@@ -61,19 +61,20 @@ def get_outputs(pytorch_model, openvino_model_path, input, input_name,
 
 
 def get_base_deploy_cfg():
-    deploy_cfg = Config(dict(backend_config=dict(type='openvino')))
-    return deploy_cfg
+    return Config(dict(backend_config=dict(type='openvino')))
 
 
 def get_deploy_cfg_with_mo_args():
-    deploy_cfg = Config(
+    return Config(
         dict(
             backend_config=dict(
                 type='openvino',
                 mo_options=dict(
-                    args={'--data_type': 'FP32'}, flags=['--disable_fusing'
-                                                         ]))))
-    return deploy_cfg
+                    args={'--data_type': 'FP32'}, flags=['--disable_fusing']
+                ),
+            )
+        )
+    )
 
 
 @pytest.mark.parametrize('get_deploy_cfg',
@@ -121,7 +122,7 @@ def test_can_not_run_onnx2openvino_without_mo():
     except RuntimeError:
         is_error = True
 
-    os.environ.update(current_environ)
+    os.environ |= current_environ
     assert is_error, \
         'The onnx2openvino script was launched without checking for MO.'
 

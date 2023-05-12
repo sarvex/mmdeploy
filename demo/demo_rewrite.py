@@ -95,7 +95,7 @@ async def visualize(original_path: str, rewritten_path: str):
 
 
 if __name__ == '__main__':
-    tmp_dir = os.getcwd() + '/tmp'
+    tmp_dir = f'{os.getcwd()}/tmp'
     if not os.path.exists(tmp_dir):
         os.mkdir(tmp_dir)
     original_file_path = os.path.join(tmp_dir, 'original.onnx')

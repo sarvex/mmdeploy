@@ -27,7 +27,7 @@ def test_function_rewriter():
         assert hasattr(ctx, 'origin_func')
         return x - y
 
-    cfg = dict()
+    cfg = {}
     with RewriterContext(cfg, backend='tensorrt'):
         result = torch.add(x, y)
         # replace add with sub

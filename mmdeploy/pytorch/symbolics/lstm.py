@@ -76,7 +76,7 @@ def generic_rnn__ncnn(g,
     prev_output = input
 
     h_outs = []
-    if variant == 'RNN' or variant == 'GRU':
+    if variant in ['RNN', 'GRU']:
         h0 = initial_states
     elif variant == 'LSTM':
         h0, c0 = initial_states
@@ -105,7 +105,7 @@ def generic_rnn__ncnn(g,
         weights = layer_weights[layer_index]
         if variant == 'RNN':
             weight_ih, weight_hh = weights
-        elif variant == 'GRU' or variant == 'LSTM':
+        elif variant in ['GRU', 'LSTM']:
             weight_ih, weight_hh = [
                 reform_weights(g, w, hidden_size, reform_permutation)
                 for w in weights
@@ -118,7 +118,7 @@ def generic_rnn__ncnn(g,
         weights = layer_weights[layer_index]
         if variant == 'RNN':
             weight_ih, weight_hh, bias_ih, bias_hh = weights
-        elif variant == 'GRU' or variant == 'LSTM':
+        elif variant in ['GRU', 'LSTM']:
             weight_ih, weight_hh, bias_ih, bias_hh = [
                 reform_weights(g, w, hidden_size, reform_permutation)
                 for w in weights
@@ -168,11 +168,7 @@ def generic_rnn__ncnn(g,
             'direction_s': 'bidirectional'
         }
         if variant == 'RNN':
-            if bidirectional:
-                activation = [nonlinearity, nonlinearity]
-            else:
-                activation = [nonlinearity]
-
+            activation = [nonlinearity, nonlinearity] if bidirectional else [nonlinearity]
             prev_output, h_out = g.op(
                 'RNN',
                 *inputs,
@@ -220,7 +216,7 @@ def generic_rnn__ncnn(g,
         # num_directions * hidden_size
         prev_output = g.op('Transpose', prev_output, perm_i=[1, 0, 2])
     h_outs = h_out if num_layers == 1 else g.op('Concat', *h_outs, axis_i=0)
-    if variant == 'RNN' or variant == 'GRU':
+    if variant in ['RNN', 'GRU']:
         return prev_output, h_outs
     elif variant == 'LSTM':
         c_outs = c_out if num_layers == 1 else g.op(

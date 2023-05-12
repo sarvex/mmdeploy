@@ -38,22 +38,21 @@ class OpenVINOWrapper(BaseWrapper):
 
         from openvino.inference_engine import IECore
         self.ie = IECore()
-        bin_path = osp.splitext(ir_model_file)[0] + '.bin'
+        bin_path = f'{osp.splitext(ir_model_file)[0]}.bin'
         self.net = self.ie.read_network(ir_model_file, bin_path)
         for input in self.net.input_info.values():
             batch_size = input.input_data.shape[0]
             dims = len(input.input_data.shape)
             # if input is a image, it has (B,C,H,W) channels,
             # need batch_size==1
-            assert not dims == 4 or batch_size == 1, \
-                'Only batch 1 is supported.'
+            assert dims != 4 or batch_size == 1, 'Only batch 1 is supported.'
         self.device = 'cpu'
         self.sess = self.ie.load_network(
             network=self.net, device_name=self.device.upper(), num_requests=1)
 
         # TODO: Check if output_names can be read
         if output_names is None:
-            output_names = [name for name in self.net.outputs]
+            output_names = list(self.net.outputs)
 
         super().__init__(output_names)
 
@@ -69,11 +68,10 @@ class OpenVINOWrapper(BaseWrapper):
             Dict[str, torch.Tensor]: The output name and tensor pairs
                 with updated device type.
         """
-        updated_inputs = {
+        return {
             name: data.to(torch.device(self.device)).contiguous()
             for name, data in inputs.items()
         }
-        return updated_inputs
 
     def __reshape(self, inputs: Dict[str, torch.Tensor]):
         """Reshape the model for the shape of the input data.
@@ -147,5 +145,4 @@ class OpenVINOWrapper(BaseWrapper):
         Returns:
             Dict[str, numpy.ndarray]: The output name and tensor pairs.
         """
-        outputs = self.sess.infer(inputs)
-        return outputs
+        return self.sess.infer(inputs)

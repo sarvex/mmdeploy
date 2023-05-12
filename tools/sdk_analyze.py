@@ -9,8 +9,7 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description='Analyze sdk profiler file tool.')
     parser.add_argument('profile_file', help='SDK profile file path')
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def get_name(addr, prev, addr2name, used_addr, depth, skip):
@@ -24,7 +23,7 @@ def get_name(addr, prev, addr2name, used_addr, depth, skip):
     prev_name = get_name(prev[addr], prev, addr2name, used_addr, depth, skip)
     if len(prev_name.split()) == 0:
         return prev_name + node_name
-    return prev_name + '/' + node_name
+    return f'{prev_name}/{node_name}'
 
 
 def main():

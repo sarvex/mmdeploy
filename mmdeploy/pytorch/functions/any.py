@@ -13,7 +13,7 @@ def any__default(input: torch.Tensor,
                  keepdim: bool = False,
                  **kwargs) -> torch.Tensor:
     """Rewrite `any` for ONNX."""
-    if dim is None and keepdim is False:
+    if dim is None and not keepdim:
         return (input != 0).sum() > 0
 
     return (input != 0).sum(dim, keepdim=keepdim) > 0

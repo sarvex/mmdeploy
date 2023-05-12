@@ -483,8 +483,7 @@ def base_dense_head__predict_by_feat__ncnn(
     ],
                                   dim=2)
     if isinstance(self.bbox_coder, TBLRBBoxCoder):
-        batch_mlvl_bboxes = _tblr_pred_to_delta_xywh_pred(
-            batch_mlvl_bboxes, vars[0:2])
+        batch_mlvl_bboxes = _tblr_pred_to_delta_xywh_pred(batch_mlvl_bboxes, vars[:2])
     elif isinstance(self.bbox_coder, DistancePointBBoxCoder):
         bboxes_x0 = batch_mlvl_bboxes[:, :, 0:1] / img_width
         bboxes_y0 = batch_mlvl_bboxes[:, :, 1:2] / img_height
@@ -519,13 +518,17 @@ def base_dense_head__predict_by_feat__ncnn(
     pre_top_k = post_params.pre_top_k
     keep_top_k = cfg.get('max_per_img', post_params.keep_top_k)
 
-    output__ncnn = ncnn_detection_output_forward(
-        batch_mlvl_bboxes, batch_mlvl_scores, batch_mlvl_priors,
-        score_threshold, iou_threshold, pre_top_k, keep_top_k,
+    return ncnn_detection_output_forward(
+        batch_mlvl_bboxes,
+        batch_mlvl_scores,
+        batch_mlvl_priors,
+        score_threshold,
+        iou_threshold,
+        pre_top_k,
+        keep_top_k,
         self.num_classes + 1,
-        vars.cpu().detach().numpy())
-
-    return output__ncnn
+        vars.cpu().detach().numpy(),
+    )
 
 
 def _tblr_pred_to_delta_xywh_pred(bbox_pred: torch.Tensor,

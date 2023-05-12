@@ -49,8 +49,7 @@ class ONNXNMSRotatedOp(torch.autograd.Function):
                 indices.append(
                     torch.stack([batch_inds, cls_inds, box_inds], dim=-1))
 
-        indices = torch.cat(indices)
-        return indices
+        return torch.cat(indices)
 
     @staticmethod
     def symbolic(g, boxes: Tensor, scores: Tensor, iou_threshold: float,
@@ -73,8 +72,9 @@ class ONNXNMSRotatedOp(torch.autograd.Function):
             'mmdeploy::NMSRotated',
             boxes,
             scores,
-            iou_threshold_f=float(iou_threshold),
-            score_threshold_f=float(score_threshold))
+            iou_threshold_f=iou_threshold,
+            score_threshold_f=score_threshold,
+        )
 
 
 class TRTBatchedRotatedNMSop(torch.autograd.Function):
@@ -199,10 +199,9 @@ def select_rnms_index(scores: torch.Tensor,
     batched_labels = torch.cat((batched_labels, batched_labels.new_zeros(
         (N, 1))), 1)
 
-    # sort
-    is_use_topk = keep_top_k > 0 and \
-        (torch.onnx.is_in_onnx_export() or keep_top_k < batched_dets.shape[1])
-    if is_use_topk:
+    if is_use_topk := keep_top_k > 0 and (
+        torch.onnx.is_in_onnx_export() or keep_top_k < batched_dets.shape[1]
+    ):
         _, topk_inds = batched_dets[:, :, -1].topk(keep_top_k, dim=1)
     else:
         _, topk_inds = batched_dets[:, :, -1].sort(dim=1, descending=True)

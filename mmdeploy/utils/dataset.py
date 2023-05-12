@@ -12,11 +12,11 @@ def is_can_sort_dataset(dataset: Dataset) -> bool:
     Returns:
         bool: Is it possible or not to sort the dataset.
     """
-    is_sort_possible = \
-        hasattr(dataset, 'data_infos') and \
-        dataset.data_infos and \
-        all(key in dataset.data_infos[0] for key in ('height', 'width'))
-    return is_sort_possible
+    return (
+        hasattr(dataset, 'data_infos')
+        and dataset.data_infos
+        and all(key in dataset.data_infos[0] for key in ('height', 'width'))
+    )
 
 
 def sort_dataset(dataset: Dataset) -> Dataset:

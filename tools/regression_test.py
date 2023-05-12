@@ -60,9 +60,7 @@ def parse_args():
         help='set log level',
         default='INFO',
         choices=list(logging._nameToLevel.keys()))
-    args = parser.parse_args()
-
-    return args
+    return parser.parse_args()
 
 
 def merge_report(work_dir: str, logger: logging.Logger):
@@ -168,7 +166,7 @@ def get_model_metafile_info(global_info: dict, model_info: dict,
     with open(metafile_path) as f:
         metafile_info = yaml.load(f, Loader=yaml.FullLoader)
 
-    model_meta_info = dict()
+    model_meta_info = {}
     for meta_model in metafile_info.get('Models'):
         if str(meta_model.get('Config')) not in model_config_files:
             # skip if the model not in model_config_files
@@ -178,7 +176,7 @@ def get_model_metafile_info(global_info: dict, model_info: dict,
             continue
 
         # get meta info
-        model_meta_info.update({meta_model.get('Config'): meta_model})
+        model_meta_info[meta_model.get('Config')] = meta_model
 
         # get weight url
         weights_url = meta_model.get('Weights')
@@ -302,13 +300,13 @@ def get_pytorch_result(model_name: str, meta_info: dict, checkpoint_path: Path,
     # get metric
     model_info = meta_info[model_config_name]
     metafile_metric_info = model_info['Results']
-    pytorch_metric = dict()
+    pytorch_metric = {}
     using_dataset = set()
     using_task = set()
     datasets = []
     # Get metrics info from metafile
     for metafile_metric in metafile_metric_info:
-        pytorch_metric.update(metafile_metric['Metrics'])
+        pytorch_metric |= metafile_metric['Metrics']
         dataset = metafile_metric['Dataset']
         task_name = metafile_metric['Task']
         datasets.append(dataset)
@@ -385,21 +383,17 @@ def parse_test_log(work_dir: str) -> dict:
         fname = os.path.split(f)[1].strip('.json')
         try:
             date = datetime.strptime(fname, '%Y%m%d_%H%M%S')
-            if newest_date is None:
-                newest_date = date
-                json_path = f
-            elif date > newest_date:
+            if newest_date is None or date > newest_date:
                 newest_date = date
                 json_path = f
         except Exception:
             pass
     if (not os.path.exists(work_dir)) or json_path is None:
         logger.warning(f'Not json files found in {work_dir}')
-        result = {}
+        return {}
     else:
         logger.info(f'Parse test result from {json_path}')
-        result = mmengine.load(json_path)
-    return result
+        return mmengine.load(json_path)
 
 
 def get_fps_metric(shell_res: int, pytorch_metric: dict, metric_info: dict,
@@ -419,10 +413,7 @@ def get_fps_metric(shell_res: int, pytorch_metric: dict, metric_info: dict,
     """
     # check if converted successes or not.
     fps = '-'
-    if shell_res != 0:
-        backend_results = {}
-    else:
-        backend_results = parse_test_log(work_path)
+    backend_results = {} if shell_res != 0 else parse_test_log(work_path)
     compare_results = {}
     output_result = {}
     for metric_name, metric_value in pytorch_metric.items():
@@ -483,7 +474,7 @@ def get_backend_fps_metric(deploy_cfg_path: str, model_cfg_path: Path,
         '--speed-test', f'--device {device_type}'
     ]
 
-    codebase_name = get_codebase(str(deploy_cfg_path)).value
+    codebase_name = get_codebase(deploy_cfg_path).value
     # to stop Dataloader OOM in docker CI
     if codebase_name not in ['mmedit', 'mmocr', 'mmcls']:
         cfg_options = 'test_dataloader.num_workers=0 ' \
@@ -515,7 +506,7 @@ def get_backend_fps_metric(deploy_cfg_path: str, model_cfg_path: Path,
         checkpoint=convert_checkpoint_path,
         dataset=dataset_type,
         backend_name=backend_name,
-        deploy_config=str(deploy_cfg_path),
+        deploy_config=deploy_cfg_path,
         static_or_dynamic=infer_type,
         precision_type=precision_type,
         conversion_result=str(convert_result),
@@ -523,7 +514,8 @@ def get_backend_fps_metric(deploy_cfg_path: str, model_cfg_path: Path,
         metric_info=metric_list,
         test_pass=str(test_pass),
         report_txt_path=report_txt_path,
-        codebase_name=codebase_name)
+        codebase_name=codebase_name,
+    )
 
 
 def get_precision_type(deploy_cfg_name: str):
@@ -536,13 +528,11 @@ def get_precision_type(deploy_cfg_name: str):
         Str: precision_type: Precision type of the deployment name.
     """
     if 'int8' in deploy_cfg_name:
-        precision_type = 'int8'
+        return 'int8'
     elif 'fp16' in deploy_cfg_name:
-        precision_type = 'fp16'
+        return 'fp16'
     else:
-        precision_type = 'fp32'
-
-    return precision_type
+        return 'fp32'
 
 
 def replace_top_in_pipeline_json(backend_output_path: Path,
@@ -596,10 +586,7 @@ def run_cmd(cmd_lines: List[str], log_path: Path):
     import platform
     system = platform.system().lower()
 
-    if system == 'windows':
-        sep = r'`'
-    else:  # 'Linux', 'Darwin'
-        sep = '\\'
+    sep = r'`' if system == 'windows' else '\\'
     cmd_for_run = ' '.join(cmd_lines)
     cmd_for_log = f' {sep}\n'.join(cmd_lines) + '\n'
     parent_path = log_path.parent
@@ -693,7 +680,7 @@ def get_backend_result(pipeline_info: dict, model_cfg_path: Path,
     backend_name = str(get_backend(str(deploy_cfg_path)).name).lower()
 
     # change device_type for special case
-    if backend_name in ['ncnn', 'openvino']:
+    if backend_name in {'ncnn', 'openvino'}:
         device_type = 'cpu'
     elif backend_name == 'onnxruntime' and device_type != 'cpu':
         import onnxruntime as ort
@@ -749,7 +736,7 @@ def get_backend_result(pipeline_info: dict, model_cfg_path: Path,
         for backend_file in backend_file_name:
             backend_path = backend_output_path.joinpath(backend_file)
             backend_path = str(backend_path.absolute().resolve())
-            convert_checkpoint_path += f'{str(backend_path)} '
+            convert_checkpoint_path += f'{backend_path} '
     else:
         report_checkpoint = backend_output_path.joinpath(backend_file_name)
         convert_checkpoint_path = \
@@ -781,7 +768,7 @@ def get_backend_result(pipeline_info: dict, model_cfg_path: Path,
 
         if sdk_config is not None:
 
-            if codebase_name == 'mmcls' or codebase_name == 'mmaction':
+            if codebase_name in ['mmcls', 'mmaction']:
                 replace_top_in_pipeline_json(backend_output_path, logger)
 
             log_path = gen_log_path(
@@ -814,7 +801,6 @@ def get_backend_result(pipeline_info: dict, model_cfg_path: Path,
         test_pass = convert_result
         dataset_type = metafile_dataset['dataset']
         task_name = metafile_dataset['task']
-        # update the report
         update_report(
             report_dict=report_dict,
             model_name=model_name,
@@ -826,12 +812,13 @@ def get_backend_result(pipeline_info: dict, model_cfg_path: Path,
             deploy_config=str(deploy_cfg_path),
             static_or_dynamic=infer_type,
             precision_type=precision_type,
-            conversion_result=str(convert_result),
+            conversion_result=str(test_pass),
             fps=fps,
             metric_info=metric_list,
             test_pass=str(test_pass),
             report_txt_path=report_txt_path,
-            codebase_name=codebase_name)
+            codebase_name=codebase_name,
+        )
 
 
 def save_report(report_info: dict, report_save_path: Path,
@@ -864,8 +851,7 @@ def _filter_string(inputs):
     Returns:
         str: Output of only alpha&number string.
     """
-    outputs = ''.join([i.lower() for i in inputs if i.isalnum()])
-    return outputs
+    return ''.join([i.lower() for i in inputs if i.isalnum()])
 
 
 def main():
@@ -938,17 +924,15 @@ def main():
         global_info = yaml_info.get('globals')
         metric_info = global_info.get('metric_info', {})
         for metric_name in metric_info:
-            report_dict.update({metric_name: []})
-        report_dict.update({'Test Pass': []})
+            report_dict[metric_name] = []
+        report_dict['Test Pass'] = []
 
         global_info.update({'checkpoint_dir': args.checkpoint_dir})
         global_info.update(
             {'codebase_name': Path(deploy_yaml).stem.split('_')[0]})
 
         with open(report_txt_path, 'w') as f_report:
-            title_str = ''
-            for key in report_dict:
-                title_str += f'{key},'
+            title_str = ''.join(f'{key},' for key in report_dict)
             title_str = title_str[:-1] + '\n'
             f_report.write(title_str)  # clear the report tmp file
 

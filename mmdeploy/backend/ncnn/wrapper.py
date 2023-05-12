@@ -87,7 +87,7 @@ class NCNNWrapper(BaseWrapper):
             assert input_tensor.size(
                 0) == batch_size, 'All tensors should have same batch size'
             assert input_tensor.device.type == 'cpu', \
-                'ncnn only supports cpu device'
+                    'ncnn only supports cpu device'
         # set output names
         output_names = self._output_names
         # create output dict
@@ -118,11 +118,7 @@ class NCNNWrapper(BaseWrapper):
 
         # stack outputs together
         for name, output_tensor in outputs.items():
-            if None in output_tensor:
-                outputs[name] = None
-            else:
-                outputs[name] = torch.stack(output_tensor)
-
+            outputs[name] = None if None in output_tensor else torch.stack(output_tensor)
         return outputs
 
     @TimeCounter.count_time(Backend.NCNN.value)

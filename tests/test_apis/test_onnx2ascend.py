@@ -61,7 +61,7 @@ def test_onnx2ascend():
 
     work_dir, _ = osp.split(onnx_file)
     file_name = osp.splitext(onnx_file)[0]
-    om_path = osp.join(work_dir, file_name + '.om')
+    om_path = osp.join(work_dir, f'{file_name}.om')
     model_inputs = mmengine.Config(
         dict(
             dynamic_batch_size=[1, 2, 4],

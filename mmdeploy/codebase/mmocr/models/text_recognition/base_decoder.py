@@ -26,5 +26,4 @@ def base_decoder__forward(
             containing meta information and gold annotations for each of
             the images. Defaults to None.
     """
-    out_dec = self(feat, out_enc, data_samples)
-    return out_dec
+    return self(feat, out_enc, data_samples)

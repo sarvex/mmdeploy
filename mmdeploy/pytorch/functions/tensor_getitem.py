@@ -22,8 +22,7 @@ def tensor__getitem__ascend(self, key) -> torch.Tensor:
     def _num_slice_types(slices):
         num_slice = 0
         for s in slices:
-            if isinstance(s, slice) or isinstance(s, int) or isinstance(
-                    s, Iterable):
+            if isinstance(s, (slice, int, Iterable)):
                 num_slice += 1
         return num_slice
 
@@ -32,9 +31,8 @@ def tensor__getitem__ascend(self, key) -> torch.Tensor:
     num_ellipsis = len(shape) - _num_slice_types(new_key)
     dim_count = 0
     for i, k in enumerate(new_key):
-        if isinstance(k, int):
-            if k < 0:
-                new_key[i] = shape[dim_count] + k
+        if isinstance(k, int) and k < 0:
+            new_key[i] = shape[dim_count] + k
         if k == Ellipsis:
             dim_count = dim_count + num_ellipsis
         elif k is not None:

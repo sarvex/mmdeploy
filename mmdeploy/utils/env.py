@@ -15,10 +15,7 @@ def get_library_version(lib):
     """
     try:
         lib = importlib.import_module(lib)
-        if hasattr(lib, '__version__'):
-            version = lib.__version__
-        else:
-            version = None
+        version = lib.__version__ if hasattr(lib, '__version__') else None
     except Exception:
         version = None
 
@@ -31,7 +28,7 @@ def get_codebase_version():
     Returns:
         Dict: The name and the version of supported codebases.
     """
-    version_dict = dict()
+    version_dict = {}
     for enum in Codebase:
         codebase = enum.value
         version_dict[codebase] = get_library_version(codebase)
@@ -45,7 +42,7 @@ def get_backend_version():
         Dict: The name and the version of some supported backend.
     """
     backend_library_list = ['tensorrt', 'onnxruntime', 'ncnn', 'tvm']
-    version_dict = dict()
-    for backend in backend_library_list:
-        version_dict[backend] = get_library_version(backend)
-    return version_dict
+    return {
+        backend: get_library_version(backend)
+        for backend in backend_library_list
+    }

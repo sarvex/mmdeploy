@@ -9,7 +9,7 @@ class TraceFunc:
     """Trace Transform."""
 
     def __init__(self):
-        self.module_dict = dict()
+        self.module_dict = {}
 
     def register_module(self, name):
         if name in self.module_dict:
@@ -40,8 +40,7 @@ class Context:
 def load(context: Context, args: Dict):
     default_args = {'to_float32': False, 'color_type': 'color'}
     color_type = args.get('color_type', default_args['color_type'])
-    if color_type == 'color' or \
-            color_type == 'color_ignore_orientation':
+    if color_type in ['color', 'color_ignore_orientation']:
         context.transforms.append({'type': 'cvtColorBGR'})
     else:
         context.transforms.append({'type': 'cvtColorGray'})

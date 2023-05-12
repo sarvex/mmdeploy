@@ -49,7 +49,7 @@ class HDF5Calibrator(trt.IInt8Calibrator):
         self.kwargs = kwargs
 
         # create buffers that will hold data batches
-        self.buffers = dict()
+        self.buffers = {}
 
         self.count = 0
         first_input_group = calib_data[list(calib_data.keys())[0]]
@@ -63,37 +63,35 @@ class HDF5Calibrator(trt.IInt8Calibrator):
 
     def get_batch(self, names: Sequence[str], **kwargs) -> list:
         """Get batch data."""
-        if self.count < self.dataset_length:
-
-            ret = []
-            for name in names:
-                input_group = self.calib_data[name]
-                data_np = input_group[str(self.count)][...].astype(np.float32)
-
-                # tile the tensor so we can keep the same distribute
-                opt_shape = self.input_shapes[name]['opt_shape']
-                data_shape = data_np.shape
-
-                reps = [
-                    int(np.ceil(opt_s / data_s))
-                    for opt_s, data_s in zip(opt_shape, data_shape)
-                ]
-
-                data_np = np.tile(data_np, reps)
-
-                slice_list = tuple(slice(0, end) for end in opt_shape)
-                data_np = data_np[slice_list]
-
-                data_np_cuda_ptr = cuda.mem_alloc(data_np.nbytes)
-                cuda.memcpy_htod(data_np_cuda_ptr,
-                                 np.ascontiguousarray(data_np))
-                self.buffers[name] = data_np_cuda_ptr
-
-                ret.append(self.buffers[name])
-            self.count += 1
-            return ret
-        else:
+        if self.count >= self.dataset_length:
             return None
+        ret = []
+        for name in names:
+            input_group = self.calib_data[name]
+            data_np = input_group[str(self.count)][...].astype(np.float32)
+
+            # tile the tensor so we can keep the same distribute
+            opt_shape = self.input_shapes[name]['opt_shape']
+            data_shape = data_np.shape
+
+            reps = [
+                int(np.ceil(opt_s / data_s))
+                for opt_s, data_s in zip(opt_shape, data_shape)
+            ]
+
+            data_np = np.tile(data_np, reps)
+
+            slice_list = tuple(slice(0, end) for end in opt_shape)
+            data_np = data_np[slice_list]
+
+            data_np_cuda_ptr = cuda.mem_alloc(data_np.nbytes)
+            cuda.memcpy_htod(data_np_cuda_ptr,
+                             np.ascontiguousarray(data_np))
+            self.buffers[name] = data_np_cuda_ptr
+
+            ret.append(self.buffers[name])
+        self.count += 1
+        return ret
 
     def get_algorithm(self) -> trt.CalibrationAlgoType:
         """Get Calibration algo type.

@@ -30,8 +30,7 @@ def get_deploy_cfg(input_name, output_name):
 def get_model_cfg():
     import mmengine
     file = 'tests/test_codebase/test_mmedit/data/model.py'
-    model_cfg = mmengine.Config.fromfile(file)
-    return model_cfg
+    return mmengine.Config.fromfile(file)
 
 
 @pytest.mark.parametrize('input_name', [input_name])

@@ -190,16 +190,14 @@ def __gather_topk(*inputs: Sequence[torch.Tensor],
     """The default implementation of gather_topk."""
     if is_batched:
         batch_inds = torch.arange(batch_size, device=inds.device).unsqueeze(-1)
-        outputs = [
+        return [
             x[batch_inds, inds, ...] if x is not None else None for x in inputs
         ]
     else:
         prior_inds = inds.new_zeros((1, 1))
-        outputs = [
+        return [
             x[prior_inds, inds, ...] if x is not None else None for x in inputs
         ]
-
-    return outputs
 
 
 class TRTGatherTopk(torch.autograd.Function):
@@ -214,9 +212,7 @@ class TRTGatherTopk(torch.autograd.Function):
     @staticmethod
     def symbolic(g, x, inds):
         """symbolic of gather topk."""
-        out = g.op('mmdeploy::GatherTopk', x, inds, outputs=1)
-
-        return out
+        return g.op('mmdeploy::GatherTopk', x, inds, outputs=1)
 
 
 @FUNCTION_REWRITER.register_rewriter(
@@ -262,9 +258,7 @@ def __gather_topk__nonbatch(*inputs: Sequence[torch.Tensor],
     """Single batch gather_topk."""
     assert batch_size == 1
     inds = inds.squeeze(0)
-    outputs = [x[:, inds, ...] if x is not None else None for x in inputs]
-
-    return outputs
+    return [x[:, inds, ...] if x is not None else None for x in inputs]
 
 
 def gather_topk(*inputs: Sequence[torch.Tensor],

@@ -37,11 +37,11 @@ def process_model_config(model_cfg: mmengine.Config,
         # set loading pipeline type
         cfg.test_pipeline[0].type = 'LoadImageFromNDArray'
 
-    # remove some training related pipeline
-    removed_indices = []
-    for i in range(len(cfg.test_pipeline)):
-        if cfg.test_pipeline[i]['type'] in ['LoadAnnotations']:
-            removed_indices.append(i)
+    removed_indices = [
+        i
+        for i in range(len(cfg.test_pipeline))
+        if cfg.test_pipeline[i]['type'] in ['LoadAnnotations']
+    ]
     for i in reversed(removed_indices):
         cfg.test_pipeline.pop(i)
 
@@ -49,7 +49,7 @@ def process_model_config(model_cfg: mmengine.Config,
     if input_shape is not None:
         found_resize = False
         for i in range(len(cfg.test_pipeline)):
-            if 'Resize' == cfg.test_pipeline[i]['type']:
+            if cfg.test_pipeline[i]['type'] == 'Resize':
                 cfg.test_pipeline[i]['scale'] = tuple(input_shape)
                 cfg.test_pipeline[i]['keep_ratio'] = False
                 found_resize = True
@@ -189,10 +189,7 @@ class Segmentation(BaseTask):
         test_pipeline = Compose(cfg.test_pipeline)
         batch_data = defaultdict(list)
         for img in imgs:
-            if isinstance(img, str):
-                data = dict(img_path=img)
-            else:
-                data = dict(img=img)
+            data = dict(img_path=img) if isinstance(img, str) else dict(img=img)
             data = test_pipeline(data)
             batch_data['inputs'].append(data['inputs'])
             batch_data['data_samples'].append(data['data_samples'])
@@ -302,8 +299,7 @@ class Segmentation(BaseTask):
         params = self.model_cfg.model.decode_head
         if isinstance(params, list):
             params = params[-1]
-        postprocess = dict(params=params, type='ResizeMask')
-        return postprocess
+        return dict(params=params, type='ResizeMask')
 
     def get_model_name(self, *args, **kwargs) -> str:
         """Get the model name.
@@ -314,9 +310,8 @@ class Segmentation(BaseTask):
         assert 'decode_head' in self.model_cfg.model, 'model config contains'
         ' no decode_head'
         if isinstance(self.model_cfg.model.decode_head, list):
-            name = self.model_cfg.model.decode_head[-1].type[:-4].lower()
+            return self.model_cfg.model.decode_head[-1].type[:-4].lower()
         elif 'type' in self.model_cfg.model.decode_head:
-            name = self.model_cfg.model.decode_head.type[:-4].lower()
+            return self.model_cfg.model.decode_head.type[:-4].lower()
         else:
-            name = 'mmseg_model'
-        return name
+            return 'mmseg_model'

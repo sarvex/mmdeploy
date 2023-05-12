@@ -59,10 +59,7 @@ def visiontransformer__forward__ncnn(self, x):
                 patch_token = x.reshape(B, *patch_resolution, C)
                 patch_token = patch_token.permute(0, 3, 1, 2)
                 cls_token = None
-            if self.output_cls_token:
-                out = [patch_token, cls_token]
-            else:
-                out = patch_token
+            out = [patch_token, cls_token] if self.output_cls_token else patch_token
             outs.append(out)
 
     return tuple(outs)

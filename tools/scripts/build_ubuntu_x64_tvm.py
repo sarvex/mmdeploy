@@ -69,12 +69,12 @@ def install_tvm(dep_dir):
         """ sed -i "s@set(USE_LLVM OFF)@set(USE_LLVM /usr/bin/llvm-config-10)@g" config.cmake """  # noqa: E501
     )
 
-    os.system('cmake .. && make -j {} && make runtime'.format(g_jobs))
+    os.system(f'cmake .. && make -j {g_jobs} && make runtime')
 
     # set env
     os.system(
-        """ echo 'export LD_LIBRARY_PATH={}:$LD_LIBRARY_PATH' >> ~/mmdeploy.env """  # noqa: E501
-        .format(os.path.join(tvm_dir, 'build')))
+        f""" echo 'export LD_LIBRARY_PATH={os.path.join(tvm_dir, 'build')}:$LD_LIBRARY_PATH' >> ~/mmdeploy.env """
+    )
 
     # install python package
     os.chdir(osp.join(tvm_dir, 'python'))
@@ -101,19 +101,19 @@ def install_mmdeploy(work_dir, tvm_dir):
 
     os.system('rm -rf build/CMakeCache.txt')
 
-    cmd = 'cd build && cmake ..'
-    cmd += ' -DMMDEPLOY_BUILD_SDK=ON '
+    cmd = 'cd build && cmake ..' + ' -DMMDEPLOY_BUILD_SDK=ON '
     cmd += ' -DMMDEPLOY_BUILD_EXAMPLES=ON '
     cmd += ' -DMMDEPLOY_BUILD_SDK_PYTHON_API=ON '
     cmd += ' -DMMDEPLOY_TARGET_DEVICES=cpu '
     cmd += ' -DMMDEPLOY_TARGET_BACKENDS=tvm '
-    cmd += ' -DTVM_DIR={} '.format(tvm_dir)
+    cmd += f' -DTVM_DIR={tvm_dir} '
     os.system(cmd)
 
-    os.system('cd build && make -j {} && make install'.format(g_jobs))
+    os.system(f'cd build && make -j {g_jobs} && make install')
     os.system('python3 -m pip install -v -e .')
-    os.system(""" echo 'export PATH={}:$PATH' >> ~/mmdeploy.env """.format(
-        os.path.join(work_dir, 'mmdeploy', 'backend', 'tvm')))
+    os.system(
+        f""" echo 'export PATH={os.path.join(work_dir, 'mmdeploy', 'backend', 'tvm')}:$PATH' >> ~/mmdeploy.env """
+    )
     try:
         import mmcv
         print(mmcv.__version__)
@@ -135,13 +135,13 @@ def main():
     """
     global g_jobs
     g_jobs = get_job(sys.argv)
-    print('g_jobs {}'.format(g_jobs))
+    print(f'g_jobs {g_jobs}')
 
     work_dir = osp.abspath(osp.join(__file__, '..', '..', '..'))
     dep_dir = osp.abspath(osp.join(work_dir, '..', 'mmdeploy-dep'))
     if not osp.exists(dep_dir):
         if osp.isfile(dep_dir):
-            print('{} already exists and it is a file, exit.'.format(work_dir))
+            print(f'{work_dir} already exists and it is a file, exit.')
             return -1
         os.mkdir(dep_dir)
 

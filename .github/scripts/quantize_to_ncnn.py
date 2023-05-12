@@ -29,7 +29,7 @@ def prepare_dataset():
         'dataset',
         'https://media.githubusercontent.com/media/tpoisonooo/mmdeploy-onnx2ncnn-testdata/main/dataset.tar'  # noqa: E501
     )  # noqa: E501
-    os.system('wget {}'.format(DATASET[1]))
+    os.system(f'wget {DATASET[1]}')
     os.system('tar xvf dataset.tar')
     return DATASET[0]
 
@@ -41,11 +41,11 @@ def main():
     """
     data_dir = prepare_dataset()
 
+    deploy_cfg = 'configs/mmcls/classification_ncnn-int8_static.py'
     for conf in CONFIGS:
         model = conf[0]
-        os.system('wget {}'.format(conf[1]))
+        os.system(f'wget {conf[1]}')
         model_cfg = conf[2]
-        deploy_cfg = 'configs/mmcls/classification_ncnn-int8_static.py'
         quant_cmd = [
             'python', 'tools/onnx2ncnn_quant_table.py', '--onnx', model,
             '--deploy-cfg', deploy_cfg, '--model-cfg', model_cfg, '--out-onnx',

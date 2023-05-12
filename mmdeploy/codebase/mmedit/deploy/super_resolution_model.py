@@ -242,7 +242,7 @@ def build_super_resolution_model(
 
     backend = get_backend(deploy_cfg)
     model_type = get_codebase_config(deploy_cfg).get('model_type', 'end2end')
-    backend_model = __BACKEND_MODEL.build(
+    return __BACKEND_MODEL.build(
         dict(
             type=model_type,
             backend=backend,
@@ -251,6 +251,6 @@ def build_super_resolution_model(
             model_cfg=model_cfg,
             deploy_cfg=deploy_cfg,
             data_preprocessor=data_preprocessor,
-            **kwargs))
-
-    return backend_model
+            **kwargs
+        )
+    )

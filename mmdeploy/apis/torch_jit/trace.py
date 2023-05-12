@@ -116,7 +116,7 @@ def trace(func: torch.nn.Module,
 
     # save model
     if output_path_prefix is not None:
-        output_path = output_path_prefix + '.pt'
+        output_path = f'{output_path_prefix}.pt'
         logger.info(f'Save PyTorch model: {output_path}.')
         torch.jit.save(ts_model, output_path)
 

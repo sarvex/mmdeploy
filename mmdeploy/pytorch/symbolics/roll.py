@@ -15,10 +15,9 @@ def roll(g, self, shifts, dims):
 
     result = self
     for i in range(len(shifts)):
-        shapes = []
         shape = _slice_helper(
             g, result, axes=[dims[i]], starts=[-shifts[i]], ends=[sys.maxsize])
-        shapes.append(shape)
+        shapes = [shape]
         shape = _slice_helper(
             g, result, axes=[dims[i]], starts=[0], ends=[-shifts[i]])
         shapes.append(shape)

@@ -41,8 +41,8 @@ class ONNXNMSop(torch.autograd.Function):
         from mmcv.ops import nms
         batch_size, num_class, _ = scores.shape
 
-        score_threshold = float(score_threshold)
-        iou_threshold = float(iou_threshold)
+        score_threshold = score_threshold
+        iou_threshold = iou_threshold
         indices = []
         for batch_id in range(batch_size):
             for cls_id in range(num_class):
@@ -60,8 +60,7 @@ class ONNXNMSop(torch.autograd.Function):
                 cls_inds = torch.zeros_like(box_inds) + cls_id
                 indices.append(
                     torch.stack([batch_inds, cls_inds, box_inds], dim=-1))
-        indices = torch.cat(indices)
-        return indices
+        return torch.cat(indices)
 
     @staticmethod
     def symbolic(g, boxes: Tensor, scores: Tensor,
@@ -231,10 +230,9 @@ def _select_nms_index(scores: torch.Tensor,
     batched_labels = torch.cat((batched_labels, batched_labels.new_zeros(
         (N, 1))), 1)
 
-    # sort
-    is_use_topk = keep_top_k > 0 and \
-        (torch.onnx.is_in_onnx_export() or keep_top_k < batched_dets.shape[1])
-    if is_use_topk:
+    if is_use_topk := keep_top_k > 0 and (
+        torch.onnx.is_in_onnx_export() or keep_top_k < batched_dets.shape[1]
+    ):
         _, topk_inds = batched_dets[:, :, -1].topk(keep_top_k, dim=1)
     else:
         _, topk_inds = batched_dets[:, :, -1].sort(dim=1, descending=True)
@@ -333,10 +331,9 @@ def _multiclass_nms_single(boxes: Tensor,
     dets = torch.cat((dets, dets.new_zeros((1, 1, 5))), 1)
     labels = torch.cat((labels, labels.new_zeros((1, 1))), 1)
 
-    # topk or sort
-    is_use_topk = keep_top_k > 0 and \
-        (torch.onnx.is_in_onnx_export() or keep_top_k < dets.shape[1])
-    if is_use_topk:
+    if is_use_topk := keep_top_k > 0 and (
+        torch.onnx.is_in_onnx_export() or keep_top_k < dets.shape[1]
+    ):
         _, topk_inds = dets[:, :, -1].topk(keep_top_k, dim=1)
     else:
         _, topk_inds = dets[:, :, -1].sort(dim=1, descending=True)
@@ -344,11 +341,10 @@ def _multiclass_nms_single(boxes: Tensor,
     dets = dets[:, topk_inds, ...]
     labels = labels[:, topk_inds, ...]
 
-    if output_index:
-        bbox_index = pre_topk_inds[None, topk_inds]
-        return dets, labels, bbox_index
-    else:
+    if not output_index:
         return dets, labels
+    bbox_index = pre_topk_inds[None, topk_inds]
+    return dets, labels, bbox_index
 
 
 @FUNCTION_REWRITER.register_rewriter(
@@ -468,9 +464,7 @@ def multiclass_nms_static(boxes: Tensor,
     label_shape = labels.shape
     dets = dets.reshape([batch_size, *dets_shape[1:]])
     labels = labels.reshape([batch_size, *label_shape[1:]])
-    if output_index:
-        return dets, labels, box_index
-    return dets, labels
+    return (dets, labels, box_index) if output_index else (dets, labels)
 
 
 @mark(
@@ -568,9 +562,7 @@ def multiclass_nms__coreml(boxes: Tensor,
     boxes = _xywh2xyxy(boxes)
     dets = torch.cat([boxes, scores.unsqueeze(-1)], dim=-1)
 
-    if output_index:
-        return dets, labels, box_index
-    return dets, labels
+    return (dets, labels, box_index) if output_index else (dets, labels)
 
 
 @FUNCTION_REWRITER.register_rewriter(

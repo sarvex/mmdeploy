@@ -49,7 +49,7 @@ class HDF5Dataset:
         """
         for idx in range(self.dataset_length):
 
-            ret = dict()
+            ret = {}
             for name, opt_shape in self.input_shapes.items():
                 input_group = self.calib_data[name]
                 data_np = input_group[str(idx)][...].astype(np.float32)

@@ -126,16 +126,12 @@ def clear_mmdeploy():
 
 
 def check_env(cfg: Dict):
-    env_info = {}
-
-    cmake_envs = cfg.get('cmake_cfg', dict())
+    cmake_envs = cfg.get('cmake_cfg', {})
 
     # system
     platform_system = platform.system().lower()
     platform_machine = platform.machine().lower()
-    env_info['system'] = platform_system
-    env_info['machine'] = platform_machine
-
+    env_info = {'system': platform_system, 'machine': platform_machine}
     # CUDA version
     cuda_version = 'unknown'
 
@@ -152,7 +148,7 @@ def check_env(cfg: Dict):
         pattern = r'Cuda compilation tools, release (\d+.\d+)'
         match = re.search(pattern, nvcc)
         if match is not None:
-            cuda_version = match.group(1)
+            cuda_version = match[1]
     except Exception:
         pass
 
@@ -180,8 +176,8 @@ def check_env(cfg: Dict):
 
     if osp.exists(TENSORRT_DIR):
         with open(
-                osp.join(TENSORRT_DIR, 'include', 'NvInferVersion.h'),
-                mode='r') as f:
+                        osp.join(TENSORRT_DIR, 'include', 'NvInferVersion.h'),
+                        mode='r') as f:
             data = f.read()
             major = re.search(r'#define NV_TENSORRT_MAJOR (\d+)', data)
             minor = re.search(r'#define NV_TENSORRT_MINOR (\d+)', data)
@@ -189,9 +185,12 @@ def check_env(cfg: Dict):
             build = re.search(r'#define NV_TENSORRT_BUILD (\d+)', data)
             if major is not None and minor is not None and patch is not None \
                     and build is not None:
-                tensorrt_version = (f'{major.group(1)}.' +
-                                    f'{minor.group(1)}.' +
-                                    f'{patch.group(1)}.' + f'{build.group(1)}')
+                tensorrt_version = (
+                    f'{major[1]}.'
+                    + f'{minor[1]}.'
+                    + f'{patch[1]}.'
+                    + f'{build[1]}'
+                )
 
     env_info['trt_v'] = tensorrt_version
 
@@ -288,8 +287,7 @@ def copy_onnxruntime(cfg, dst_dir):
     ort_root = cfg['cmake_cfg']['ONNXRUNTIME_DIR']
     patterns = ['libonnxruntime.so.*', 'onnxruntime.dll']
     for pattern in patterns:
-        src_lib = glob(osp.join(ort_root, 'lib', pattern))
-        if len(src_lib) > 0:
+        if src_lib := glob(osp.join(ort_root, 'lib', pattern)):
             dst_lib = osp.join(dst_dir, osp.basename(src_lib[0]))
             _copy(src_lib[0], dst_lib)
 
@@ -458,9 +456,7 @@ def parse_args():
     parser.add_argument('--config', help='The build config yaml file.')
     parser.add_argument(
         '--output-dir', default='.', help='Output package directory.')
-    args = parser.parse_args()
-
-    return args
+    return parser.parse_args()
 
 
 def parse_configs(cfg_path: str):

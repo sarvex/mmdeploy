@@ -53,5 +53,4 @@ def db_head__predict(self, x: torch.Tensor,
         SampleList: Detection results of each image
         after the post process.
     """
-    outs = self(x, batch_data_samples, mode='predict')
-    return outs
+    return self(x, batch_data_samples, mode='predict')

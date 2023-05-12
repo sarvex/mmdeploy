@@ -357,10 +357,15 @@ class TestRKNNModel:
                         max_per_img=100))))
 
         from mmdeploy.codebase.mmdet.deploy.object_detection_model import \
-            RKNNModel
-        cls.rknn_model = RKNNModel(Backend.RKNN, ['', ''], 'cpu',
-                                   ['' for i in range(80)], model_cfg,
-                                   deploy_cfg)
+                RKNNModel
+        cls.rknn_model = RKNNModel(
+            Backend.RKNN,
+            ['', ''],
+            'cpu',
+            ['' for _ in range(80)],
+            model_cfg,
+            deploy_cfg,
+        )
 
     @classmethod
     def teardown_class(cls):

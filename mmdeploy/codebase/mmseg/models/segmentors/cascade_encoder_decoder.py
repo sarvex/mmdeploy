@@ -19,14 +19,11 @@ def cascade_encoder_decoder__predict(self, inputs, data_samples, **kwargs):
     Returns:
         torch.Tensor: Output segmentation map pf shape [N, 1, H, W].
     """
-    batch_img_metas = []
-    for data_sample in data_samples:
-        batch_img_metas.append(data_sample.metainfo)
+    batch_img_metas = [data_sample.metainfo for data_sample in data_samples]
     x = self.extract_feat(inputs)
     out = self.decode_head[0].forward(x)
     for i in range(1, self.num_stages - 1):
         out = self.decode_head[i].forward(x, out)
     seg_logit = self.decode_head[-1].predict(x, out, batch_img_metas,
                                              self.test_cfg)
-    seg_pred = seg_logit.argmax(dim=1, keepdim=True)
-    return seg_pred
+    return seg_logit.argmax(dim=1, keepdim=True)

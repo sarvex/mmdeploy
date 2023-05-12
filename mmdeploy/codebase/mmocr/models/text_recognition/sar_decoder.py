@@ -196,9 +196,7 @@ def sequential_sar_decoder__forward_test(
             y_prev = char_embedding
             outputs.append(y)
 
-    outputs = torch.stack(outputs, 1)
-
-    return outputs
+    return torch.stack(outputs, 1)
 
 
 @MODULE_REWRITER.register_rewrite_module(
@@ -266,5 +264,4 @@ class SequentialSARDecoder(nn.Module):
             list[TextRecogDataSample]:  A list of N datasamples of prediction
             results. Results are stored in ``pred_text``.
         """
-        out_dec = self(feat, out_enc, data_samples)
-        return out_dec
+        return self(feat, out_enc, data_samples)

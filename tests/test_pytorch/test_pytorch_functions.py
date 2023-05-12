@@ -20,26 +20,33 @@ deploy_cfg_ncnn = Config(
 
 
 def get_trt_config(output_names, shape, dynamic_axes=None):
-    deploy_cfg_tensorrt = Config(
+    return Config(
         dict(
             onnx_config=dict(
                 input_shape=None,
                 output_names=output_names,
-                dynamic_axes=dynamic_axes),
+                dynamic_axes=dynamic_axes,
+            ),
             backend_config=dict(
                 type='tensorrt',
                 common_config=dict(
-                    fp16_mode=False, max_workspace_size=1 << 20),
+                    fp16_mode=False, max_workspace_size=1 << 20
+                ),
                 model_inputs=[
                     dict(
                         input_shapes=dict(
                             input=dict(
                                 min_shape=shape,
                                 opt_shape=shape,
-                                max_shape=shape)))
-                ]),
-            codebase_config=dict(type='mmdet', task='ObjectDetection')))
-    return deploy_cfg_tensorrt
+                                max_shape=shape,
+                            )
+                        )
+                    )
+                ],
+            ),
+            codebase_config=dict(type='mmdet', task='ObjectDetection'),
+        )
+    )
 
 
 @backend_checker(Backend.NCNN)

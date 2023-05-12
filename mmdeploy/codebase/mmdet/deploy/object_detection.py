@@ -198,7 +198,7 @@ class ObjectDetection(BaseTask):
                 transform_list = transform['transforms']
                 for i, step in enumerate(transform_list):
                     if step['type'] == 'Pad' and 'pad_to_square' in step \
-                       and step['pad_to_square']:
+                           and step['pad_to_square']:
                         transform_list.pop(i)
                         break
         test_pipeline = Compose(pipeline)
@@ -216,11 +216,10 @@ class ObjectDetection(BaseTask):
             data.append(data_)
 
         data = pseudo_collate(data)
-        if data_preprocessor is not None:
-            data = data_preprocessor(data, False)
-            return data, data['inputs']
-        else:
+        if data_preprocessor is None:
             return data, BaseTask.get_tensor_from_input(data)
+        data = data_preprocessor(data, False)
+        return data, data['inputs']
 
     @staticmethod
     def get_partition_cfg(partition_type: str) -> Dict:
@@ -253,14 +252,16 @@ class ObjectDetection(BaseTask):
         ]
         # Extra pad outside datapreprocessor for CenterNet, CornerNet, etc.
         for i, transform in enumerate(pipeline):
-            if transform['type'] == 'RandomCenterCropPad':
-                if transform['test_pad_mode'][0] == 'logical_or':
-                    extra_pad = dict(
-                        type='Pad',
-                        logical_or_val=transform['test_pad_mode'][1],
-                        add_pix_val=transform['test_pad_add_pix'],
-                    )
-                    pipeline[i] = extra_pad
+            if (
+                transform['type'] == 'RandomCenterCropPad'
+                and transform['test_pad_mode'][0] == 'logical_or'
+            ):
+                extra_pad = dict(
+                    type='Pad',
+                    logical_or_val=transform['test_pad_mode'][1],
+                    add_pix_val=transform['test_pad_add_pix'],
+                )
+                pipeline[i] = extra_pad
         transforms = [
             item for item in pipeline if 'Random' not in item['type']
             and 'Annotation' not in item['type']
@@ -333,8 +334,7 @@ class ObjectDetection(BaseTask):
             str: the name of the model.
         """
         assert 'type' in self.model_cfg.model, 'model config contains no type'
-        name = self.model_cfg.model.type.lower()
-        return name
+        return self.model_cfg.model.type.lower()
 
     def get_visualizer(self, name: str, save_dir: str):
         visualizer = super().get_visualizer(name, save_dir)

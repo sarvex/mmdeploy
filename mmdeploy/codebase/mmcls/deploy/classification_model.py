@@ -56,8 +56,7 @@ class End2EndModel(BaseBackendModel):
     def _get_head(self):
         from mmcls.models import build_head
         head_config = self.model_cfg['model']['head']
-        head = build_head(head_config)
-        return head
+        return build_head(head_config)
 
     def _init_wrapper(self, backend: Backend, backend_files: Sequence[str],
                       device: str, **kwargs):
@@ -87,7 +86,7 @@ class End2EndModel(BaseBackendModel):
             Any: Model output.
         """
         assert mode == 'predict', \
-            'Backend model only support mode==predict,' f' but get {mode}'
+                'Backend model only support mode==predict,' f' but get {mode}'
         if inputs.device != torch.device(self.device):
             get_root_logger().warning(f'expect input device {self.device}'
                                       f' but get {inputs.device}.')
@@ -107,10 +106,10 @@ class End2EndModel(BaseBackendModel):
                                                      pred_labels):
                     data_sample.set_pred_score(score).set_pred_label(label)
             else:
-                data_samples = []
-                for score, label in zip(pred_scores, pred_labels):
-                    data_samples.append(ClsDataSample().set_pred_score(
-                        score).set_pred_label(label))
+                data_samples = [
+                    ClsDataSample().set_pred_score(score).set_pred_label(label)
+                    for score, label in zip(pred_scores, pred_labels)
+                ]
         else:
             if data_samples is None:
                 data_samples = [
@@ -166,9 +165,7 @@ class SDKEnd2EndModel(End2EndModel):
 
         cls_score = torch.cat(cls_score, 0)
         from mmcls.models.heads.cls_head import ClsHead
-        predict = ClsHead._get_predictions(
-            None, cls_score, data_samples=data_samples)
-        return predict
+        return ClsHead._get_predictions(None, cls_score, data_samples=data_samples)
 
 
 @__BACKEND_MODEL.register_module('rknn')
@@ -192,7 +189,7 @@ class RKNNEnd2EndModel(End2EndModel):
             Any: Model output.
         """
         assert mode == 'predict', \
-            'Backend model only support mode==predict,' f' but get {mode}'
+                'Backend model only support mode==predict,' f' but get {mode}'
         if inputs.device != torch.device(self.device):
             get_root_logger().warning(f'expect input device {self.device}'
                                       f' but get {inputs.device}.')
@@ -200,10 +197,7 @@ class RKNNEnd2EndModel(End2EndModel):
         cls_score = self.wrapper({self.input_name: inputs})[0]
 
         from mmcls.models.heads.cls_head import ClsHead
-        predict = ClsHead._get_predictions(
-            None, cls_score, data_samples=data_samples)
-
-        return predict
+        return ClsHead._get_predictions(None, cls_score, data_samples=data_samples)
 
 
 def build_classification_model(
@@ -236,7 +230,7 @@ def build_classification_model(
     backend = get_backend(deploy_cfg)
     model_type = get_codebase_config(deploy_cfg).get('model_type', 'end2end')
 
-    backend_classifier = __BACKEND_MODEL.build(
+    return __BACKEND_MODEL.build(
         dict(
             type=model_type,
             backend=backend,
@@ -245,6 +239,6 @@ def build_classification_model(
             model_cfg=model_cfg,
             deploy_cfg=deploy_cfg,
             data_preprocessor=data_preprocessor,
-            **kwargs))
-
-    return backend_classifier
+            **kwargs
+        )
+    )

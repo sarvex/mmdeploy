@@ -56,12 +56,13 @@ test_dataloader = val_dataloader
 
 val_evaluator = dict(
     type='CocoMetric',
-    ann_file=data_root + 'annotations/person_keypoints_val2017.json')
+    ann_file=f'{data_root}annotations/person_keypoints_val2017.json',
+)
 test_evaluator = val_evaluator
 
 # default_runtime
 default_scope = 'mmpose'
-default_hooks = dict()
+default_hooks = {}
 vis_backends = [dict(type='LocalVisBackend')]
 visualizer = dict(
     type='PoseLocalVisualizer', vis_backends=vis_backends, name='visualizer')

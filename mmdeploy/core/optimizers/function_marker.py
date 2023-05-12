@@ -7,7 +7,7 @@ import torch
 from mmdeploy.core.rewriters import FUNCTION_REWRITER
 from mmdeploy.utils import IR, cfg_apply_marks, get_partition_config
 
-MARK_FUNCTION_COUNT = dict()
+MARK_FUNCTION_COUNT = {}
 
 
 def reset_mark_function_count():
@@ -41,7 +41,7 @@ class Mark(torch.autograd.Function):
     @staticmethod
     def symbolic(g, x, dtype, shape, func, func_id, type, name, id, attrs):
         """Symbolic function for mmdeploy::Mark op."""
-        n = g.op(
+        return g.op(
             'mmdeploy::Mark',
             x,
             dtype_i=TORCH_DTYPE_TO_ONNX[dtype],
@@ -51,8 +51,8 @@ class Mark(torch.autograd.Function):
             type_s=type,
             name_s=name,
             id_i=id,
-            **attrs)
-        return n
+            **attrs
+        )
 
     @staticmethod
     def forward(ctx, x, *args) -> torch.Tensor:
@@ -65,9 +65,7 @@ class Mark(torch.autograd.Function):
 def mark_symbolic(g, x, *args):
     """Rewrite symbolic of mark op."""
     ctx = FUNCTION_REWRITER.get_context()
-    if cfg_apply_marks(ctx.cfg):
-        return ctx.origin_func(g, x, *args)
-    return x
+    return ctx.origin_func(g, x, *args) if cfg_apply_marks(ctx.cfg) else x
 
 
 @FUNCTION_REWRITER.register_rewriter(

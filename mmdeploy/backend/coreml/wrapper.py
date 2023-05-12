@@ -47,8 +47,7 @@ class CoreMLWrapper(BaseWrapper):
         Returns:
             Dict[str, torch.Tensor]: Key-value pairs of model outputs.
         """
-        model_inputs = dict(
-            (k, v.detach().cpu().numpy()) for k, v in inputs.items())
+        model_inputs = {k: v.detach().cpu().numpy() for k, v in inputs.items()}
         output = self.__execute(model_inputs)
         for name, tensor in output.items():
             output[name] = torch.from_numpy(tensor)

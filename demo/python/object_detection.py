@@ -14,8 +14,7 @@ def parse_args():
         'model_path',
         help='path of mmdeploy SDK model dumped by model converter')
     parser.add_argument('image_path', help='path of an image')
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():
@@ -26,9 +25,9 @@ def main():
         model_path=args.model_path, device_name=args.device_name, device_id=0)
     bboxes, labels, masks = detector(img)
 
-    indices = [i for i in range(len(bboxes))]
+    indices = list(range(len(bboxes)))
     for index, bbox, label_id in zip(indices, bboxes, labels):
-        [left, top, right, bottom], score = bbox[0:4].astype(int), bbox[4]
+        [left, top, right, bottom], score = bbox[:4].astype(int), bbox[4]
         if score < 0.3:
             continue
 

@@ -59,14 +59,14 @@ def standard_roi_head__predict_bbox(self,
 
     bbox_preds = bbox_preds.reshape(batch_size, num_proposals_per_img,
                                     bbox_preds.size(-1))
-    result_list = self.bbox_head.predict_by_feat(
+    return self.bbox_head.predict_by_feat(
         rois=rois,
         cls_scores=cls_scores,
         bbox_preds=bbox_preds,
         batch_img_metas=batch_img_metas,
         rcnn_test_cfg=rcnn_test_cfg,
-        rescale=rescale)
-    return result_list
+        rescale=rescale,
+    )
 
 
 @FUNCTION_REWRITER.register_rewriter(

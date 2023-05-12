@@ -27,7 +27,7 @@ def ema_module__forward(self, feats):
     bases = self.bases.repeat(batch_size, 1, 1)
 
     with torch.no_grad():
-        for i in range(self.num_stages):
+        for _ in range(self.num_stages):
             # [batch_size, height*width, num_bases]
             attention = torch.bmm(feats.transpose(1, 2), bases)
             # attention = torch.einsum('bcn,bck->bnk', feats, bases)

@@ -71,20 +71,14 @@ def parse_arguments():
 
 
 def generate_config(args):
-    config = {}
-    cmake_cfg = {}
-
-    # wheel platform tag
-    if args.system in ['linux', 'jetson']:
-        config['PLATFORM_TAG'] = 'manylinux2014_x86_64'
-    else:
-        config['PLATFORM_TAG'] = get_platform().replace('-',
-                                                        '_').replace('.', '_')
-
+    config = {
+        'PLATFORM_TAG': 'manylinux2014_x86_64'
+        if args.system in ['linux', 'jetson']
+        else get_platform().replace('-', '_').replace('.', '_')
+    }
     config['BUILD_MMDEPLOY'] = 'ON' if args.build_mmdeploy else 'OFF'
 
-    # deps for mmdeploy
-    cmake_cfg['MMDEPLOY_TARGET_BACKENDS'] = args.backend
+    cmake_cfg = {'MMDEPLOY_TARGET_BACKENDS': args.backend}
     if 'ort' in args.backend:
         if args.onnxruntime_dir:
             cmake_cfg['ONNXRUNTIME_DIR'] = args.onnxruntime_dir
@@ -141,11 +135,11 @@ def generate_config(args):
         if args.system in ['windows', 'linux']:
             name = 'mmdeploy-{mmdeploy_v}-{system}-{machine}'
             if args.cxx11abi:
-                name = name + '-cxx11abi'
+                name += '-cxx11abi'
             if args.device == 'cpu':
                 pass
             elif args.device == 'cuda':
-                name = '{}-cuda'.format(name) + '{cuda_v}'
+                name = f'{name}-cuda' + '{cuda_v}'
             else:
                 raise Exception('unsupported device')
             config['BUILD_SDK_NAME'] = name

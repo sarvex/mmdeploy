@@ -22,8 +22,7 @@ def parse_args():
         help='path of mmdeploy text-recognizer SDK model dumped by'
         'model converter',
     )
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():

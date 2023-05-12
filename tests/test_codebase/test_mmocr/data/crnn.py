@@ -81,7 +81,7 @@ test_prefix = 'tests/test_codebase/test_mmocr/data/'
 
 test_img_prefix1 = test_prefix
 
-test_ann_file1 = test_prefix + 'text_recognition.txt'
+test_ann_file1 = f'{test_prefix}text_recognition.txt'
 
 test1 = dict(
     type=dataset_type,

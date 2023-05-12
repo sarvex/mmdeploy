@@ -52,14 +52,12 @@ def roi_align(context, node):
     x = context[node.inputs[0]]
     input_shape = x.shape  # (B, C, h_in, w_in)
     if len(input_shape) != 4:
-        raise ValueError(
-            '"CropResize" op: expected input rank 4, got {}'.format(x.rank))
+        raise ValueError(f'"CropResize" op: expected input rank 4, got {x.rank}')
 
-    const_box_info = True
-    if context[node.inputs[1]].val is None or context[
-            node.inputs[2]].val is None:
-        const_box_info = False
-
+    const_box_info = (
+        context[node.inputs[1]].val is not None
+        and context[node.inputs[2]].val is not None
+    )
     extrapolation_value = context[node.inputs[2]].val
     # CoreML index information along with boxes
     if const_box_info:

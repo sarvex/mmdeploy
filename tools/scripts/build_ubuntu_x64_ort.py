@@ -26,7 +26,7 @@ def install_ort(dep_dir):
         os.system('tar xvf  onnxruntime-linux-x64-1.8.1.tgz')
 
     ort_dir = os.path.join(dep_dir, 'onnxruntime-linux-x64-1.8.1')
-    print('onnxruntime dir \t:{}'.format(ort_dir))
+    print(f'onnxruntime dir \t:{ort_dir}')
     print('\n')
     return ort_dir
 
@@ -44,16 +44,15 @@ def install_mmdeploy(work_dir, ort_dir):
 
     os.system('rm -rf build/CMakeCache.txt')
 
-    cmd = 'cd build && cmake ..'
-    cmd += ' -DMMDEPLOY_BUILD_SDK=ON '
+    cmd = 'cd build && cmake ..' + ' -DMMDEPLOY_BUILD_SDK=ON '
     cmd += ' -DMMDEPLOY_BUILD_EXAMPLES=ON '
     cmd += ' -DMMDEPLOY_BUILD_SDK_PYTHON_API=ON '
     cmd += ' -DMMDEPLOY_TARGET_DEVICES=cpu '
     cmd += ' -DMMDEPLOY_TARGET_BACKENDS=ort '
-    cmd += ' -DONNXRUNTIME_DIR={} '.format(ort_dir)
+    cmd += f' -DONNXRUNTIME_DIR={ort_dir} '
     os.system(cmd)
 
-    os.system('cd build && make -j {} && make install'.format(g_jobs))
+    os.system(f'cd build && make -j {g_jobs} && make install')
     os.system('python3 -m pip install -e .')
     try:
         import mmcv
@@ -76,13 +75,13 @@ def main():
     """
     global g_jobs
     g_jobs = get_job(sys.argv)
-    print('g_jobs {}'.format(g_jobs))
+    print(f'g_jobs {g_jobs}')
 
     work_dir = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
     dep_dir = os.path.abspath(os.path.join(work_dir, '..', 'mmdeploy-dep'))
     if not os.path.exists(dep_dir):
         if os.path.isfile(dep_dir):
-            print('{} already exists and it is a file, exit.'.format(work_dir))
+            print(f'{work_dir} already exists and it is a file, exit.')
             return -1
         os.mkdir(dep_dir)
 

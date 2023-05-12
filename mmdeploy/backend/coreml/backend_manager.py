@@ -49,12 +49,11 @@ class CoreMLManager(BaseBackendManager):
         """Get the version of the backend."""
         if not cls.is_available():
             return 'None'
-        else:
-            import pkg_resources
-            try:
-                return pkg_resources.get_distribution('coremltools').version
-            except Exception:
-                return 'None'
+        import pkg_resources
+        try:
+            return pkg_resources.get_distribution('coremltools').version
+        except Exception:
+            return 'None'
 
     @classmethod
     def to_backend(cls,

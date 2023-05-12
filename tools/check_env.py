@@ -39,7 +39,7 @@ if __name__ == '__main__':
     logger.info('\n')
     logger.info('**********Environmental information**********')
     for name, val in collect_env().items():
-        logger.info('{}: {}'.format(name, val))
+        logger.info(f'{name}: {val}')
     logger.info('\n')
     logger.info('**********Backend information**********')
     check_backend()

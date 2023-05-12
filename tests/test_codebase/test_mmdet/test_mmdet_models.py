@@ -260,7 +260,7 @@ def test__anchorgenerator__single_level_grid_priors():
             3: 'w'
         }))
 
-    onnx_model = onnx.load(onnx_prefix + '.onnx')
+    onnx_model = onnx.load(f'{onnx_prefix}.onnx')
 
     find_trt_grid_priors = False
     for n in onnx_model.graph.node:
@@ -289,10 +289,9 @@ def convert_to_list(rewrite_output: Dict, output_names: List[str]) -> List:
     The new list will contain only those output values, whose names are in list
     'output_names'.
     """
-    outputs = [
+    return [
         value for name, value in rewrite_output.items() if name in output_names
     ]
-    return outputs
 
 
 def get_anchor_head_model():
@@ -426,9 +425,7 @@ def get_single_roi_extractor():
     roi_layer = dict(type='RoIAlign', output_size=7, sampling_ratio=2)
     out_channels = 1
     featmap_strides = [4, 8, 16, 32]
-    model = SingleRoIExtractor(roi_layer, out_channels, featmap_strides).eval()
-
-    return model
+    return SingleRoIExtractor(roi_layer, out_channels, featmap_strides).eval()
 
 
 def get_gfl_head_model():
@@ -574,7 +571,7 @@ def test_predict_by_feat_of_rpn_head(backend_type: Backend):
         'bbox_preds': bboxes,
     }
     # do not run with ncnn backend
-    run_with_backend = False if backend_type in [Backend.NCNN] else True
+    run_with_backend = backend_type not in [Backend.NCNN]
     rewrite_outputs, is_backend_output = get_rewrite_outputs(
         wrapped_model=wrapped_model,
         model_inputs=rewrite_inputs,
@@ -631,7 +628,7 @@ def test_predict_by_feat_of_gfl_head(backend_type):
         'bbox_preds': bboxes,
     }
     # do not run with ncnn backend
-    run_with_backend = False if backend_type in [Backend.NCNN] else True
+    run_with_backend = backend_type not in [Backend.NCNN]
     rewrite_outputs, is_backend_output = get_rewrite_outputs(
         wrapped_model=wrapped_model,
         model_inputs=rewrite_inputs,
@@ -926,8 +923,7 @@ def get_cascade_roi_head(is_instance_seg=False):
         args += [mask_roi_extractor, mask_head]
 
     from mmdet.models.roi_heads import CascadeRoIHead
-    model = CascadeRoIHead(*args, **kwargs).eval()
-    return model
+    return CascadeRoIHead(*args, **kwargs).eval()
 
 
 @pytest.mark.parametrize('backend_type',
@@ -1753,8 +1749,7 @@ def test_base_dense_head_get_bboxes__rknn():
     output_names = ['output']
     input_names = []
     for i in range(6):
-        input_names.append('cls_scores_' + str(i))
-        input_names.append('bbox_preds_' + str(i))
+        input_names.extend((f'cls_scores_{str(i)}', f'bbox_preds_{str(i)}'))
     dynamic_axes = None
     deploy_cfg = mmengine.Config(
         dict(
@@ -2054,9 +2049,9 @@ def test_detrhead__predict_by_feat(backend_type: Backend, ir_type: str):
     deploy_cfg = get_deploy_cfg(backend_type, ir_type)
 
     seed_everything(1234)
-    cls_score = [torch.rand(1, 100, 5) for i in range(5, 0, -1)]
+    cls_score = [torch.rand(1, 100, 5) for _ in range(5, 0, -1)]
     seed_everything(5678)
-    bboxes = [torch.rand(1, 100, 4) for i in range(5, 0, -1)]
+    bboxes = [torch.rand(1, 100, 4) for _ in range(5, 0, -1)]
 
     # to get outputs of onnx model after rewrite
     img_metas[0]['img_shape'] = torch.Tensor([s, s])

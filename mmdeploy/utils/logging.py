@@ -28,16 +28,16 @@ def get_logger(name: str,
     # use logger in mmengine if exist.
     try:
         from mmengine.logging import MMLogger
-        if MMLogger.check_instance_created(name):
-            logger = MMLogger.get_instance(name)
-        else:
-            logger = MMLogger.get_instance(
+        return (
+            MMLogger.get_instance(name)
+            if MMLogger.check_instance_created(name)
+            else MMLogger.get_instance(
                 name,
                 log_file=log_file,
                 log_level=log_level,
-                file_mode=file_mode)
-        return logger
-
+                file_mode=file_mode,
+            )
+        )
     except Exception:
         pass
 

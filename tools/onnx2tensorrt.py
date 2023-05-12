@@ -23,9 +23,7 @@ def parse_args():
         help='set log level',
         default='INFO',
         choices=list(logging._nameToLevel.keys()))
-    args = parser.parse_args()
-
-    return args
+    return parser.parse_args()
 
 
 def main():
@@ -46,7 +44,7 @@ def main():
     final_params = common_params
     final_params.update(model_params)
 
-    int8_param = final_params.get('int8_param', dict())
+    int8_param = final_params.get('int8_param', {})
 
     if calib_file is not None:
         int8_param['calib_file'] = calib_file

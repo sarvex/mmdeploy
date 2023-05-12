@@ -100,7 +100,7 @@ class TRTWrapper(BaseWrapper):
 
     def __load_io_names(self):
         """Load input/output names from engine."""
-        names = [_ for _ in self.engine]
+        names = list(self.engine)
         input_names = list(filter(self.engine.binding_is_input, names))
         self._input_names = input_names
 
@@ -116,9 +116,9 @@ class TRTWrapper(BaseWrapper):
             prefix (str): A string to be prefixed at the key of the
                 state dict.
         """
-        state_dict[prefix + 'engine'] = bytearray(self.engine.serialize())
-        state_dict[prefix + 'input_names'] = self._input_names
-        state_dict[prefix + 'output_names'] = self._output_names
+        state_dict[f'{prefix}engine'] = bytearray(self.engine.serialize())
+        state_dict[f'{prefix}input_names'] = self._input_names
+        state_dict[f'{prefix}output_names'] = self._output_names
 
     def forward(self, inputs: Dict[str,
                                    torch.Tensor]) -> Dict[str, torch.Tensor]:
@@ -134,10 +134,13 @@ class TRTWrapper(BaseWrapper):
         assert self._output_names is not None
         bindings = [None] * (len(self._input_names) + len(self._output_names))
 
+        inputs = {
+            name: data.contiguous().int()
+            if data.dtype == torch.long
+            else data.contiguous()
+            for name, data in inputs.items()
+        }
         profile_id = 0
-        inputs = dict((name, data.contiguous().int() if data.dtype ==
-                       torch.long else data.contiguous())
-                      for name, data in inputs.items())
         for input_name, input_tensor in inputs.items():
             # check if input shape is valid
             profile = self.engine.get_profile_shape(profile_id, input_name)
@@ -145,10 +148,10 @@ class TRTWrapper(BaseWrapper):
                 profile[0]), 'Input dim is different from engine profile.'
             for s_min, s_input, s_max in zip(profile[0], input_tensor.shape,
                                              profile[2]):
-                assert s_min <= s_input <= s_max, \
-                    'Input shape should be between ' \
-                    + f'{profile[0]} and {profile[2]}' \
+                assert s_min <= s_input <= s_max, (
+                    f'Input shape should be between {profile[0]} and {profile[2]}'
                     + f' but get {tuple(input_tensor.shape)}.'
+                )
             idx = self.engine.get_binding_index(input_name)
 
             # All input tensors must be gpu variables

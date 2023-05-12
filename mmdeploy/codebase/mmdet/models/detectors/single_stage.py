@@ -21,8 +21,7 @@ def __forward_impl(self, batch_inputs, data_samples):
     """
     x = self.extract_feat(batch_inputs)
 
-    output = self.bbox_head.predict(x, data_samples, rescale=False)
-    return output
+    return self.bbox_head.predict(x, data_samples, rescale=False)
 
 
 @torch.fx.wrap

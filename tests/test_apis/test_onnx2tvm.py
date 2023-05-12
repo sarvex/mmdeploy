@@ -52,8 +52,8 @@ def test_onnx2tvm():
     file_name = osp.splitext(onnx_file)[0]
     ext = get_library_ext()
     lib_path = osp.join(work_dir, file_name + ext)
-    bytecode_path = osp.join(work_dir, file_name + '.code')
-    log_file = osp.join(work_dir, file_name + '.log')
+    bytecode_path = osp.join(work_dir, f'{file_name}.code')
+    log_file = osp.join(work_dir, f'{file_name}.log')
     shape = {'input': test_img.shape}
     dtype = {'input': 'float32'}
     target = 'llvm'
@@ -64,9 +64,9 @@ def test_onnx2tvm():
     assert osp.exists(lib_path)
 
     # test autotvm
-    lib_path = osp.join(work_dir, file_name + '_autotvm' + ext)
-    bytecode_path = osp.join(work_dir, file_name + '_autotvm.code')
-    log_file = osp.join(work_dir, file_name + '_autotvm.log')
+    lib_path = osp.join(work_dir, f'{file_name}_autotvm{ext}')
+    bytecode_path = osp.join(work_dir, f'{file_name}_autotvm.code')
+    log_file = osp.join(work_dir, f'{file_name}_autotvm.log')
     tuner_dict = dict(
         type='AutoTVMTuner',
         target=target,
@@ -85,9 +85,9 @@ def test_onnx2tvm():
     assert osp.exists(bytecode_path)
 
     # test ansor
-    lib_path = osp.join(work_dir, file_name + '_ansor' + ext)
-    bytecode_path = osp.join(work_dir, file_name + '_ansor.code')
-    log_file = osp.join(work_dir, file_name + '_ansor.log')
+    lib_path = osp.join(work_dir, f'{file_name}_ansor{ext}')
+    bytecode_path = osp.join(work_dir, f'{file_name}_ansor.code')
+    log_file = osp.join(work_dir, f'{file_name}_ansor.log')
     tuner_dict = dict(
         type='AutoScheduleTuner',
         target=target,

@@ -25,7 +25,7 @@ def get_job(argv) -> int:
     # get nprocs, if user not specified, use max(1, nproc-2)
     job = 2
     if len(argv) <= 1:
-        print('your can use `python3 {} N` to set make -j [N]'.format(argv[0]))
+        print(f'your can use `python3 {argv[0]} N` to set make -j [N]')
         nproc = cmd_result('nproc')
         if nproc is not None and len(nproc) > 0:
             job = max(int(nproc) - 2, 1)
@@ -44,17 +44,17 @@ def version_minor(txt: str) -> int:
 
 def cu_version_name(version: str) -> str:
     versions = version.split('.')
-    return 'cu' + versions[0] + versions[1]
+    return f'cu{versions[0]}{versions[1]}'
 
 
 def simple_check_install(bin: str, sudo: str) -> str:
-    result = cmd_result('which {}'.format(bin))
+    result = cmd_result(f'which {bin}')
     if result is None or len(result) < 1:
-        print('{} not found, try install {} ..'.format(bin, bin), end='')
-        os.system('{} apt install {} -y'.format(sudo, bin))
-        result = cmd_result('which {}'.format(bin))
+        print(f'{bin} not found, try install {bin} ..', end='')
+        os.system(f'{sudo} apt install {bin} -y')
+        result = cmd_result(f'which {bin}')
         if result is None or len(result) < 1:
-            print('Check {} failed.'.format(bin))
+            print(f'Check {bin} failed.')
             return None
         print('success')
     return result

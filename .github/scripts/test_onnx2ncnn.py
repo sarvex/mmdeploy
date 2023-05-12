@@ -44,8 +44,7 @@ def parse_args():
         help='onnx model output directory.')
     parser.add_argument(
         '--generate-onnx', type=bool, help='Generate onnx model.')
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def generate_onnx(args):

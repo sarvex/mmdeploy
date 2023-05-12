@@ -89,6 +89,6 @@ def two_stage_detector__forward(self,
             data_sample.proposals for data_sample in data_samples
         ]
 
-    output = self.roi_head.predict(
-        x, rpn_results_list, data_samples, rescale=False)
-    return output
+    return self.roi_head.predict(
+        x, rpn_results_list, data_samples, rescale=False
+    )

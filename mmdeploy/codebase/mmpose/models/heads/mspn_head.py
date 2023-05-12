@@ -20,5 +20,4 @@ def mspn_head__forward(self, feats):
     """
     ctx = FUNCTION_REWRITER.get_context()
     msmu_batch_heatmaps = ctx.origin_func(self, feats)
-    batch_heatmaps = msmu_batch_heatmaps[-1]
-    return batch_heatmaps
+    return msmu_batch_heatmaps[-1]

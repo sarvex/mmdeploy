@@ -33,9 +33,7 @@ class SNPEManager(BaseBackendManager):
                 to None.
         """
         from .wrapper import SNPEWrapper
-        uri = None
-        if 'uri' in kwargs:
-            uri = kwargs['uri']
+        uri = kwargs.get('uri', None)
         return SNPEWrapper(
             dlc_file=backend_files[0], uri=uri, output_names=output_names)
 
@@ -50,9 +48,7 @@ class SNPEManager(BaseBackendManager):
         """
         from .onnx2dlc import get_onnx2dlc_path
         onnx2dlc = get_onnx2dlc_path()
-        if onnx2dlc is None:
-            return False
-        return osp.exists(onnx2dlc)
+        return False if onnx2dlc is None else osp.exists(onnx2dlc)
 
     @classmethod
     def to_backend(cls,

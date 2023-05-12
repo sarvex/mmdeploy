@@ -208,7 +208,7 @@ def single_roi_extractor__forward(self, feats, rois, roi_scale_factor=None):
     roi_feats = feats[0].new_zeros(rois.shape[0], self.out_channels, *out_size)
     if num_levels == 1:
         assert len(rois) > 0, 'The number of rois should be positive'
-        if backend == Backend.TORCHSCRIPT or backend == Backend.COREML:
+        if backend in [Backend.TORCHSCRIPT, Backend.COREML]:
             self.roi_layers[0].use_torchvision = True
         return self.roi_layers[0](feats[0], rois)
 
@@ -234,7 +234,7 @@ def single_roi_extractor__forward(self, feats, rois, roi_scale_factor=None):
         inds = mask.nonzero(as_tuple=False).squeeze(1)
         rois_t = rois[inds]
         # use the roi align in torhcvision
-        if backend == Backend.TORCHSCRIPT or backend == Backend.COREML:
+        if backend in [Backend.TORCHSCRIPT, Backend.COREML]:
             self.roi_layers[i].use_torchvision = True
         roi_feats_t = self.roi_layers[i](feats[i], rois_t)
         roi_feats[inds] = roi_feats_t
@@ -268,7 +268,7 @@ class SingleRoIExtractorOpenVINO(Function):
         rois = _slice(g, rois, axes=[1], starts=[1], ends=[5])
         domain = 'org.openvinotoolkit'
         op_name = 'ExperimentalDetectronROIFeatureExtractor'
-        roi_feats = g.op(
+        return g.op(
             f'{domain}::{op_name}',
             rois,
             *feats,
@@ -279,8 +279,8 @@ class SingleRoIExtractorOpenVINO(Function):
             distribute_rois_between_levels_i=1,
             preserve_rois_order_i=0,
             aligned_i=1,
-            outputs=1)
-        return roi_feats
+            outputs=1,
+        )
 
 
 @FUNCTION_REWRITER.register_rewriter(
@@ -309,8 +309,7 @@ def single_roi_extractor__forward__openvino(self,
     sample_num = self.roi_layers[0].sampling_ratio
 
     args = (output_size, featmap_strides, sample_num, rois, *feats)
-    result = SingleRoIExtractorOpenVINO.apply(*args)
-    return result
+    return SingleRoIExtractorOpenVINO.apply(*args)
 
 
 @mark('roi_extractor', inputs=['feats', 'rois'], outputs=['bbox_feats'])

@@ -18,9 +18,7 @@ def parse_device_id(device: str) -> Optional[int]:
     """
     if device == 'cpu':
         return -1
-    if 'cuda' in device:
-        return parse_cuda_device_id(device)
-    return None
+    return parse_cuda_device_id(device) if 'cuda' in device else None
 
 
 def parse_cuda_device_id(device: str) -> int:
@@ -35,12 +33,9 @@ def parse_cuda_device_id(device: str) -> int:
     """
     match_result = re.match('([^:]+)(:[0-9]+)?$', device)
     assert match_result is not None, f'Can not parse device {device}.'
-    assert match_result.group(1).lower() == 'cuda', 'Not cuda device.'
+    assert match_result[1].lower() == 'cuda', 'Not cuda device.'
 
-    device_id = 0 if match_result.lastindex == 1 else int(
-        match_result.group(2)[1:])
-
-    return device_id
+    return 0 if match_result.lastindex == 1 else int(match_result[2][1:])
 
 
 def parse_device_type(device: str) -> str:
@@ -53,7 +48,4 @@ def parse_device_type(device: str) -> str:
     Returns:
         str: The parsed device type such as 'cuda', 'cpu', 'npu'.
     """
-    device_type = device
-    if ':' in device:
-        device_type = device.split(':')[0]
-    return device_type
+    return device.split(':')[0] if ':' in device else device

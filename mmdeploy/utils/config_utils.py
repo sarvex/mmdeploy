@@ -25,7 +25,7 @@ def load_config(*args) -> List[mmengine.Config]:
                             f'but got {type(cfg)}')
         return cfg
 
-    assert len(args) > 0
+    assert args
     configs = [_load_config(cfg) for cfg in args]
 
     return configs
@@ -41,8 +41,7 @@ def get_codebase_config(deploy_cfg: Union[str, mmengine.Config]) -> Dict:
         Dict : codebase config dict.
     """
     deploy_cfg = load_config(deploy_cfg)[0]
-    codebase_config = deploy_cfg.get('codebase_config', {})
-    return codebase_config
+    return deploy_cfg.get('codebase_config', {})
 
 
 def get_task_type(deploy_cfg: Union[str, mmengine.Config]) -> Task:
@@ -116,8 +115,7 @@ def get_backend_config(deploy_cfg: Union[str, mmengine.Config]) -> Dict:
         Dict : backend config dict.
     """
     deploy_cfg = load_config(deploy_cfg)[0]
-    backend_config = deploy_cfg.get('backend_config', {})
-    return backend_config
+    return deploy_cfg.get('backend_config', {})
 
 
 def get_backend(deploy_cfg: Union[str, mmengine.Config]) -> Backend:
@@ -199,14 +197,7 @@ def is_dynamic_batch(deploy_cfg: Union[str, mmengine.Config],
 
     # check if given input name exist
     input_axes = dynamic_axes.get(input_name, None)
-    if input_axes is None:
-        return False
-
-    # check if 0 (batch) in input axes
-    if 0 in input_axes:
-        return True
-
-    return False
+    return False if input_axes is None else 0 in input_axes
 
 
 def is_dynamic_shape(deploy_cfg: Union[str, mmengine.Config],
@@ -241,14 +232,7 @@ def is_dynamic_shape(deploy_cfg: Union[str, mmengine.Config],
 
     # check if given input name exist
     input_axes = dynamic_axes.get(input_name, None)
-    if input_axes is None:
-        return False
-
-    # check if 2 (height) and 3 (width) in input axes
-    if 2 in input_axes and 3 in input_axes:
-        return True
-
-    return False
+    return False if input_axes is None else 2 in input_axes and 3 in input_axes
 
 
 def get_input_shape(deploy_cfg: Union[str, mmengine.Config]) -> List[int]:
@@ -281,8 +265,7 @@ def cfg_apply_marks(deploy_cfg: Union[str, mmengine.Config]) -> Optional[bool]:
     if partition_config is None:
         return None
 
-    apply_marks = partition_config.get('apply_marks', False)
-    return apply_marks
+    return partition_config.get('apply_marks', False)
 
 
 def get_partition_config(
@@ -301,10 +284,7 @@ def get_partition_config(
         return None
 
     apply_marks = partition_config.get('apply_marks', False)
-    if not apply_marks:
-        return None
-
-    return partition_config
+    return None if not apply_marks else partition_config
 
 
 def get_calib_config(deploy_cfg: Union[str, mmengine.Config]) -> Dict:
@@ -317,8 +297,7 @@ def get_calib_config(deploy_cfg: Union[str, mmengine.Config]) -> Dict:
         dict: The config of calibration.
     """
 
-    calib_config = deploy_cfg.get('calib_config', None)
-    return calib_config
+    return deploy_cfg.get('calib_config', None)
 
 
 def get_calib_filename(
@@ -335,10 +314,8 @@ def get_calib_filename(
     calib_config = get_calib_config(deploy_cfg)
     if calib_config is None:
         return None
-    create_calib = calib_config.get('create_calib', False)
-    if create_calib:
-        calib_filename = calib_config.get('calib_file', 'calib_file.h5')
-        return calib_filename
+    if create_calib := calib_config.get('create_calib', False):
+        return calib_config.get('calib_file', 'calib_file.h5')
     else:
         return None
 
@@ -353,8 +330,7 @@ def get_common_config(deploy_cfg: Union[str, mmengine.Config]) -> Dict:
         dict: A dict of common parameters for a model.
     """
     backend_config = deploy_cfg['backend_config']
-    model_params = backend_config.get('common_config', dict())
-    return model_params
+    return backend_config.get('common_config', {})
 
 
 def get_quantization_config(deploy_cfg: Union[str, mmengine.Config]) -> Dict:
@@ -367,8 +343,7 @@ def get_quantization_config(deploy_cfg: Union[str, mmengine.Config]) -> Dict:
         dict: A dict of quantization parameters for a model.
     """
     backend_config = deploy_cfg['backend_config']
-    model_params = backend_config.get('quantization_config', dict())
-    return model_params
+    return backend_config.get('quantization_config', {})
 
 
 def get_model_inputs(deploy_cfg: Union[str, mmengine.Config]) -> List[Dict]:
@@ -381,8 +356,7 @@ def get_model_inputs(deploy_cfg: Union[str, mmengine.Config]) -> List[Dict]:
         list[dict]: A list of dict containing input parameters for a model.
     """
     backend_config = deploy_cfg['backend_config']
-    model_params = backend_config.get('model_inputs', [])
-    return model_params
+    return backend_config.get('model_inputs', [])
 
 
 def get_dynamic_axes(
@@ -411,11 +385,9 @@ def get_dynamic_axes(
     if dynamic_axes and not isinstance(dynamic_axes, Dict):
         if axes_names is None:
             axes_names = []
-            input_names = ir_config.get('input_names', None)
-            if input_names:
+            if input_names := ir_config.get('input_names', None):
                 axes_names += input_names
-            output_names = ir_config.get('output_names', None)
-            if output_names:
+            if output_names := ir_config.get('output_names', None):
                 axes_names += output_names
             if not axes_names:
                 raise KeyError('No names were found to define dynamic axes.')

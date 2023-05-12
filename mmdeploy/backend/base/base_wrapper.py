@@ -55,8 +55,7 @@ class BaseWrapper(torch.nn.Module, metaclass=ABCMeta):
         self._output_names = value
 
     def output_to_list(self, output_dict: Dict[str,
-                                               torch.Tensor]) -> \
-            List[torch.Tensor]:
+                                               torch.Tensor]) -> List[torch.Tensor]:
         """Convert the output dict of forward() to a tensor list.
 
         Args:
@@ -67,5 +66,4 @@ class BaseWrapper(torch.nn.Module, metaclass=ABCMeta):
             List[torch.Tensor]: An output value list whose order is determined
                 by the ouput_names list.
         """
-        outputs = [output_dict[name] for name in self._output_names]
-        return outputs
+        return [output_dict[name] for name in self._output_names]

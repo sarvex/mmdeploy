@@ -62,21 +62,18 @@ class VACCManager(BaseBackendManager):
 
         has_vacc = importlib.util.find_spec('vacc') is not None
         has_tvm = importlib.util.find_spec('tvm') is not None
-        ret = has_vacc and has_tvm
-
-        return ret
+        return has_vacc and has_tvm
 
     @classmethod
     def get_version(cls) -> str:
         """Get the version of the backend."""
         if not cls.is_available():
             return 'None'
-        else:
-            import pkg_resources
-            try:
-                return pkg_resources.get_distribution('vacc').version
-            except Exception:
-                return 'None'
+        import pkg_resources
+        try:
+            return pkg_resources.get_distribution('vacc').version
+        except Exception:
+            return 'None'
 
     @classmethod
     def check_env(cls, log_callback: Callable = lambda _: _) -> str:

@@ -68,7 +68,7 @@ def export(model: torch.nn.Module,
             each initializer.
         optimize (bool): Perform optimize on model.
     """
-    output_path = output_path_prefix + '.onnx'
+    output_path = f'{output_path_prefix}.onnx'
 
     logger = get_root_logger()
     logger.info(f'Export PyTorch model to ONNX: {output_path}.')

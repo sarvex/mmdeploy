@@ -57,8 +57,7 @@ class BaseBackendManager(metaclass=ABCMeta):
             str: Info about the environment.
         """
         try:
-            available = cls.is_available()
-            if available:
+            if available := cls.is_available():
                 try:
                     backend_version = cls.get_version()
                 except NotImplementedError:
@@ -150,7 +149,7 @@ class BackendManagerRegistry:
         """
         # try import backend if backend is in `mmdeploy.backend`
         try:
-            importlib.import_module('mmdeploy.backend.' + name)
+            importlib.import_module(f'mmdeploy.backend.{name}')
         except Exception:
             pass
         return self._module_dict.get(name, None)

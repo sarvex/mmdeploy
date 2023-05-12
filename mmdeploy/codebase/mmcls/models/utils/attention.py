@@ -42,11 +42,21 @@ def multiheadattention__forward__ncnn(self, qkv_input):
     o_weight = self.proj.weight.data
     o_bias = self.proj.bias.data
 
-    out = MultiHeadAttentionop.apply(qkv_input, qkv_input, qkv_input, q_weight,
-                                     q_bias, k_weight, k_bias, v_weight,
-                                     v_bias, o_weight, o_bias, self.embed_dims,
-                                     self.num_heads)
-    return out
+    return MultiHeadAttentionop.apply(
+        qkv_input,
+        qkv_input,
+        qkv_input,
+        q_weight,
+        q_bias,
+        k_weight,
+        k_bias,
+        v_weight,
+        v_bias,
+        o_weight,
+        o_bias,
+        self.embed_dims,
+        self.num_heads,
+    )
 
 
 @FUNCTION_REWRITER.register_rewriter(

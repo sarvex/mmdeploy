@@ -47,25 +47,24 @@ def linear__ncnn(
     if dim == 2 or dim == 3 and input.shape[0] == 1:
         # export nn.linear to Gemm op in onnx
         return GemmOp.apply(input, weight, bias)
-    else:
-        out = origin_func(input, weight)
+    out = origin_func(input, weight)
 
-        # permute
-        out = out.transpose(1, dim - 1)
+    # permute
+    out = out.transpose(1, dim - 1)
 
-        # ncnn only support [c, h, w] and [c, 1, 1] broadcast
-        out_shape = out.shape
-        batch_size = out_shape[0]
-        broad_cast_size = out_shape[1]
-        out = out.reshape([batch_size, broad_cast_size, -1, 1])
+    # ncnn only support [c, h, w] and [c, 1, 1] broadcast
+    out_shape = out.shape
+    batch_size = out_shape[0]
+    broad_cast_size = out_shape[1]
+    out = out.reshape([batch_size, broad_cast_size, -1, 1])
 
-        # add bias
-        if bias is not None:
-            bias = bias.view([1, -1, 1, 1])
-            out = out + bias
+    # add bias
+    if bias is not None:
+        bias = bias.view([1, -1, 1, 1])
+        out = out + bias
 
-        # permute back
-        # the last dim should be -1 to support dynamic shape
-        out = out.reshape(out_shape[:-1] + (-1, ))
-        out = out.transpose(1, dim - 1)
-        return out
+    # permute back
+    # the last dim should be -1 to support dynamic shape
+    out = out.reshape(out_shape[:-1] + (-1, ))
+    out = out.transpose(1, dim - 1)
+    return out

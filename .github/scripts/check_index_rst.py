@@ -32,9 +32,7 @@ def check_index_rst(index_file: str):
                     logging.error(f'File {line} not exists in '
                                   f'Line {idx} of index_file {index_file}')
 
-    # check if all md files added in index.rst index_file
-    rest_md_files = list(set(md_files) - set(md_files_rst))
-    if len(rest_md_files) > 0:
+    if rest_md_files := list(set(md_files) - set(md_files_rst)):
         for f in rest_md_files:
             logging.warning(f'Please check whether file {f} '
                             f'should be added in {index_file}')
@@ -45,8 +43,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Check index.rst.')
     parser.add_argument(
         'file', type=str, help='Path of index.rst to be checked')
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():

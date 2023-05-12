@@ -17,8 +17,7 @@ from mmdeploy.utils.constants import SDK_TASK_MAP as task_map
 def get_mmdeploy_version() -> str:
     """Return the version of MMDeploy."""
     import mmdeploy
-    version = mmdeploy.__version__
-    return version
+    return mmdeploy.__version__
 
 
 def get_task(deploy_cfg: mmengine.Config) -> Dict:
@@ -239,8 +238,9 @@ def get_postprocess(deploy_cfg: mmengine.Config, model_cfg: mmengine.Config,
         module=module,
         name='postprocess',
         component=post_processor['type'],
-        params=post_processor.get('params', dict()),
-        output=['post_output'])
+        params=post_processor.get('params', {}),
+        output=['post_output'],
+    )
 
 
 def get_deploy(deploy_cfg: mmengine.Config, model_cfg: mmengine.Config,
@@ -316,10 +316,10 @@ def get_detail(deploy_cfg: mmengine.Config, model_cfg: mmengine.Config,
     codebase = get_task(deploy_cfg)
     codebase['pth'] = pth
     codebase['config'] = model_cfg.filename
-    codebase_config = deploy_cfg.get('codebase_config', dict())
+    codebase_config = deploy_cfg.get('codebase_config', {})
     ir_config = get_ir_config(deploy_cfg)
-    backend_config = deploy_cfg.get('backend_config', dict())
-    calib_config = deploy_cfg.get('calib_config', dict())
+    backend_config = deploy_cfg.get('backend_config', {})
+    calib_config = deploy_cfg.get('calib_config', {})
     return dict(
         version=version,
         codebase=codebase,
@@ -348,17 +348,11 @@ def export2SDK(deploy_cfg: Union[str, mmengine.Config],
     pipeline_info = get_pipeline(deploy_cfg, model_cfg, work_dir, device)
     detail_info = get_detail(deploy_cfg, model_cfg, pth=pth)
     mmengine.dump(
-        deploy_info,
-        '{}/deploy.json'.format(work_dir),
-        sort_keys=False,
-        indent=4)
+        deploy_info, f'{work_dir}/deploy.json', sort_keys=False, indent=4
+    )
     mmengine.dump(
-        pipeline_info,
-        '{}/pipeline.json'.format(work_dir),
-        sort_keys=False,
-        indent=4)
+        pipeline_info, f'{work_dir}/pipeline.json', sort_keys=False, indent=4
+    )
     mmengine.dump(
-        detail_info,
-        '{}/detail.json'.format(work_dir),
-        sort_keys=False,
-        indent=4)
+        detail_info, f'{work_dir}/detail.json', sort_keys=False, indent=4
+    )

@@ -18,10 +18,14 @@ ort_cfg = dict(
 
 
 def _find_next_node(start: int, nodes: List, op_type: str) -> Tuple[Any, int]:
-    for idx, n in enumerate(nodes[start:]):
-        if n.op_type == op_type:
-            return n, idx
-    return None, -1
+    return next(
+        (
+            (n, idx)
+            for idx, n in enumerate(nodes[start:])
+            if n.op_type == op_type
+        ),
+        (None, -1),
+    )
 
 
 def test_merge_shape_concate():

@@ -47,21 +47,18 @@ class TVMManager(BaseBackendManager):
             bool: True if backend package is installed.
         """
         import importlib
-        ret = importlib.util.find_spec('tvm') is not None
-
-        return ret
+        return importlib.util.find_spec('tvm') is not None
 
     @classmethod
     def get_version(cls) -> str:
         """Get the version of the backend."""
         if not cls.is_available():
             return 'None'
-        else:
-            import pkg_resources
-            try:
-                return pkg_resources.get_distribution('tvm').version
-            except Exception:
-                return 'None'
+        import pkg_resources
+        try:
+            return pkg_resources.get_distribution('tvm').version
+        except Exception:
+            return 'None'
 
     @classmethod
     def to_backend(cls,
@@ -92,22 +89,17 @@ class TVMManager(BaseBackendManager):
         from .onnx2tvm import from_onnx
         model_inputs = get_model_inputs(deploy_cfg)
 
-        if device.startswith('cuda'):
-            target = 'cuda'
-        else:
-            target = 'llvm'
-
         lib_ext = get_library_ext()
 
         tvm_files = []
+        target = 'cuda' if device.startswith('cuda') else 'llvm'
         for model_id, onnx_path in enumerate(ir_files):
             model_input = copy.deepcopy(model_inputs[model_id])
             use_vm = model_input.get('use_vm', False)
             if 'target' not in model_input['tuner']:
                 model_input['tuner']['target'] = target
             lib_path = osp.splitext(onnx_path)[0] + lib_ext
-            code_path = osp.splitext(
-                onnx_path)[0] + '.code' if use_vm else None
+            code_path = f'{osp.splitext(onnx_path)[0]}.code' if use_vm else None
             model_input['output_file'] = lib_path
             model_input['onnx_model'] = onnx_path
             model_input['bytecode_file'] = code_path
@@ -120,7 +112,7 @@ class TVMManager(BaseBackendManager):
                 partition_cfgs = get_partition_config(deploy_cfg)
                 onnx_name = osp.splitext(osp.split(onnx_path)[1])[0]
                 partition_type = 'end2end' if partition_cfgs is None \
-                    else onnx_name
+                        else onnx_name
                 dataset = HDF5Dataset(
                     calib_path,
                     model_input['shape'],

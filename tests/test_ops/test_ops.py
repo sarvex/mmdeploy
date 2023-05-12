@@ -458,11 +458,8 @@ def test_batched_rotated_nms(backend,
 
 
 @pytest.mark.parametrize('backend', [TEST_TENSORRT])
-@pytest.mark.parametrize(
-    'out_size, pool_mode, sampling_ratio,roi_scale_factor,'
-    ' finest_scale,featmap_strides, aligned',
-    [(tuple([2, 2]), 0, 2, 1.0, 2, list([2.0, 4.0]), 1),
-     (tuple([2, 2]), 1, 2, 1.0, 2, list([2.0, 4.0]), 1)])
+@pytest.mark.parametrize('out_size, pool_mode, sampling_ratio,roi_scale_factor,'
+    ' finest_scale,featmap_strides, aligned', [((2, 2), 0, 2, 1.0, 2, [2.0, 4.0], 1), ((2, 2), 1, 2, 1.0, 2, [2.0, 4.0], 1)])
 def test_multi_level_roi_align(backend,
                                out_size,
                                pool_mode,
@@ -522,7 +519,7 @@ def test_multi_level_roi_align(backend,
         input = input_list[0]
         rois = input_list[1]
         expected_result = input_list[2]
-    input_name = [('input_' + str(i)) for i in range(len(featmap_strides))]
+    input_name = [f'input_{str(i)}' for i in range(len(featmap_strides))]
     input_name.insert(0, 'rois')
 
     inputs = [
@@ -581,10 +578,7 @@ def test_topk(backend,
               save_dir=None):
     backend.check_env()
 
-    if input_list is None:
-        input = torch.rand(1, 8, 12, 17)
-    else:
-        input = input_list[0]
+    input = torch.rand(1, 8, 12, 17) if input_list is None else input_list[0]
     assert input.shape[0] == 1, (f'ncnn batch must be 1, \
         but got {input.shape[0]}')
 
@@ -600,11 +594,13 @@ def test_topk(backend,
     with RewriterContext(cfg={}, backend=backend.backend_name, opset=11):
         if not sorted:
             backend.run_and_validate(
-                wrapped_model, [input.float()],
-                'topk' + f'_no_sorted_dim_{dim}',
+                wrapped_model,
+                [input.float()],
+                f'topk_no_sorted_dim_{dim}',
                 input_names=['inputs'],
                 output_names=['data', 'index'],
-                save_dir=save_dir)
+                save_dir=save_dir,
+            )
         else:
             backend.run_and_validate(
                 wrapped_model, [input.float()],
@@ -931,10 +927,8 @@ def test_roi_align_rotated(backend,
 
 
 @pytest.mark.parametrize('backend', [TEST_TENSORRT])
-@pytest.mark.parametrize(
-    'out_size, clockwise, sampling_ratio, roi_scale_factor,'
-    ' finest_scale, featmap_strides, aligned',
-    [(tuple([2, 2]), False, 2, 1.0, 2, list([1.0]), 1)])
+@pytest.mark.parametrize('out_size, clockwise, sampling_ratio, roi_scale_factor,'
+    ' finest_scale, featmap_strides, aligned', [((2, 2), False, 2, 1.0, 2, [1.0], 1)])
 def test_multi_level_rotated_roi_align(backend,
                                        out_size,
                                        clockwise,
@@ -959,7 +953,7 @@ def test_multi_level_rotated_roi_align(backend,
         input = input_list[0]
         rois = input_list[1]
         expected_result = input_list[2]
-    input_name = [('input_' + str(i)) for i in range(len(featmap_strides))]
+    input_name = [f'input_{str(i)}' for i in range(len(featmap_strides))]
     input_name.insert(0, 'rois')
 
     inputs = [
@@ -1130,6 +1124,8 @@ def test_gather_topk(backend, save_dir=None):
 
     x = torch.rand(2, 10, 4).cuda()
 
+
+
     class TestModel(torch.nn.Module):
 
         def __init__(self) -> None:
@@ -1140,8 +1136,8 @@ def test_gather_topk(backend, save_dir=None):
             max_x, _ = x.max(-1)
             _, inds = max_x.topk(4)
 
-            new_x = gather_topk(x, inds=inds, batch_size=batch_size)
-            return new_x
+            return gather_topk(x, inds=inds, batch_size=batch_size)
+
 
     model = TestModel().cuda()
 
@@ -1239,7 +1235,7 @@ def test_multi_scale_deformable_attn(backend, save_dir=None):
     spatial_shapes = [[68, 120], [34, 60]]
     value_spatial_shapes = torch.LongTensor(spatial_shapes).cuda()
     Nl = value_spatial_shapes.shape[0]
-    Nk = sum([spatial_shapes[i][0] * spatial_shapes[i][1] for i in range(Nl)])
+    Nk = sum(spatial_shapes[i][0] * spatial_shapes[i][1] for i in range(Nl))
     value = torch.rand(Bs, Nk, Nh, Nc).cuda()
     level_start_index = torch.cat((
         value_spatial_shapes.new_zeros((1, )),
@@ -1248,6 +1244,8 @@ def test_multi_scale_deformable_attn(backend, save_dir=None):
     sampling_locations = torch.rand(Bs, Nq, Nh, Nl, Np, 2).cuda()
     attention_weights = torch.rand(Bs, Nq, Nh, Nl, Np).cuda()
 
+
+
     class TestModel(torch.nn.Module):
 
         def __init__(self) -> None:
@@ -1255,12 +1253,17 @@ def test_multi_scale_deformable_attn(backend, save_dir=None):
             self.im2col_step = 32
 
         def forward(self, value, value_spatial_shapes, level_start_index,
-                    sampling_locations, attention_weights):
+                            sampling_locations, attention_weights):
 
-            new_x = MultiScaleDeformableAttnFunction.apply(
-                value, value_spatial_shapes, level_start_index,
-                sampling_locations, attention_weights, self.im2col_step)
-            return new_x
+            return MultiScaleDeformableAttnFunction.apply(
+                value,
+                value_spatial_shapes,
+                level_start_index,
+                sampling_locations,
+                attention_weights,
+                self.im2col_step,
+            )
+
 
     model = TestModel().cuda()
 

@@ -254,7 +254,7 @@ class AutoTVMTuner(TVMTunerBase):
         # create tmp log file
         if os.path.exists(self._log_file):
             os.remove(self._log_file)
-        tmp_log_file = self._log_file + '.tmp'
+        tmp_log_file = f'{self._log_file}.tmp'
         if os.path.exists(tmp_log_file):
             os.remove(tmp_log_file)
 
@@ -265,11 +265,13 @@ class AutoTVMTuner(TVMTunerBase):
             tuner_cfg['task'] = task
             tuner_obj = build_autotvm_tuner(tuner_cfg)
 
-            if self._use_transfer_learning:
-                if os.path.isfile(tmp_log_file) and os.path.exists(
-                        tmp_log_file):
-                    tuner_obj.load_history(
-                        autotvm.record.load_from_file(tmp_log_file))
+            if (
+                self._use_transfer_learning
+                and os.path.isfile(tmp_log_file)
+                and os.path.exists(tmp_log_file)
+            ):
+                tuner_obj.load_history(
+                    autotvm.record.load_from_file(tmp_log_file))
 
             # do tuning
             tsk_trial = min(self._n_trial, len(task.config_space))
@@ -351,9 +353,11 @@ class AutoScheduleTuner(TVMTunerBase):
             # CUDA device need a different process for measurement
             if runner['type'] == 'LocalRunner':
                 runner.pop('type')
-                if Target(target).kind != 'llvm':
-                    if 'enable_cpu_cache_flush' in runner:
-                        runner['enable_cpu_cache_flush'] = False
+                if (
+                    Target(target).kind != 'llvm'
+                    and 'enable_cpu_cache_flush' in runner
+                ):
+                    runner['enable_cpu_cache_flush'] = False
                 self._measure_ctx = auto_scheduler.LocalRPCMeasureContext(
                     **runner)
                 runner = self._measure_ctx.runner

@@ -14,8 +14,7 @@ def parse_args():
     parser.add_argument(
         'model_path', help='path of SDK model dumped by model converter')
     parser.add_argument('image_path', help='path of an image')
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():
@@ -25,9 +24,9 @@ def main():
     detector = RotatedDetector(args.model_path, args.device_name, 0)
     rbboxes, labels = detector(img)
 
-    indices = [i for i in range(len(rbboxes))]
+    indices = list(range(len(rbboxes)))
     for index, rbbox, label_id in zip(indices, rbboxes, labels):
-        [cx, cy, w, h, angle], score = rbbox[0:5], rbbox[-1]
+        [cx, cy, w, h, angle], score = rbbox[:5], rbbox[-1]
         if score < 0.1:
             continue
         [wx, wy, hx, hy] = \

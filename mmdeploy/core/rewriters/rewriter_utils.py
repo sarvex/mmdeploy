@@ -23,7 +23,7 @@ def eval_with_import(path: str) -> Any:
     split_path = path.split('.')
     for i in range(len(split_path), 0, -1):
         try:
-            exec('import {}'.format('.'.join(split_path[:i])))
+            exec(f"import {'.'.join(split_path[:i])}")
             break
         except Exception:
             continue
@@ -45,7 +45,7 @@ def import_function(path: str) -> Tuple[Callable, Optional[type]]:
     split_path = path.split('.')
     for i in range(len(split_path), 0, -1):
         try:
-            exec('import {}'.format('.'.join(split_path[:i])))
+            exec(f"import {'.'.join(split_path[:i])}")
             break
         except Exception:
             continue
@@ -56,10 +56,7 @@ def import_function(path: str) -> Tuple[Callable, Optional[type]]:
     previous_obj = eval('.'.join(split_path[:-1]))
 
     # Check if the path leads to a class
-    if inspect.isclass(previous_obj):
-        return obj, previous_obj
-    else:
-        return obj, None
+    return (obj, previous_obj) if inspect.isclass(previous_obj) else (obj, None)
 
 
 def collect_env(backend: Backend, ir: IR, **kwargs) -> Dict:
@@ -77,7 +74,7 @@ def collect_env(backend: Backend, ir: IR, **kwargs) -> Dict:
     from mmdeploy.utils import get_backend_version, get_codebase_version
     env = dict(backend=backend, ir=ir)
     env['mmdeploy'] = mmdeploy.__version__
-    env.update(get_backend_version())
+    env |= get_backend_version()
     env.update(get_codebase_version())
     env.update(kwargs)
     return env
@@ -174,12 +171,14 @@ class LibVersionChecker(Checker):
         valid = True
         # The version should no less than min version and no greater than
         # max version.
-        if self.min_version is not None:
-            if version.parse(env[self.lib]) < version.parse(self.min_version):
-                valid = False
-        if self.max_version is not None:
-            if version.parse(env[self.lib]) > version.parse(self.max_version):
-                valid = False
+        if self.min_version is not None and version.parse(
+            env[self.lib]
+        ) < version.parse(self.min_version):
+            valid = False
+        if self.max_version is not None and version.parse(
+            env[self.lib]
+        ) > version.parse(self.max_version):
+            valid = False
         return valid
 
 
@@ -203,7 +202,7 @@ class RewriterRegistry:
     """
 
     def __init__(self):
-        self._rewrite_records = dict()
+        self._rewrite_records = {}
 
     def get_records(self, env: Dict) -> List:
         """Get all registered records that are valid in the given environment
@@ -223,43 +222,29 @@ class RewriterRegistry:
         Returns:
             List: A list that includes valid records.
         """
-        default_records = list()
-        records = list()
+        default_records = []
+        records = []
 
         for origin_function, rewriter_records in self._rewrite_records.items():
             default_rewriter = None
             final_rewriter = None
             for record in rewriter_records:
-                # Get the checkers of current rewriter
-                checkers: List[Checker] = record['_checkers']
-
-                # Check if the rewriter is default rewriter
-                if len(checkers) == 0:
-                    #  Process the default rewriter exceptionally
-                    if default_rewriter is None:
-                        default_rewriter = record
-                    else:
-                        warnings.warn(
-                            'Detect multiple valid rewriters for '
-                            f'{origin_function}, use the first rewriter.')
-                else:
-                    # Check if the checker is valid.
-                    # The checker is valid only if all the checks are passed
-                    valid = True
-                    for checker in checkers:
-                        if not checker.check(env):
-                            valid = False
-                            break
-
+                if checkers := record['_checkers']:
+                    valid = all(checker.check(env) for checker in checkers)
                     if valid:
-                        # Check if there are multiple valid rewriters
-                        if final_rewriter is not None:
+                        if final_rewriter is None:
+                            final_rewriter = record
+
+                        else:
                             warnings.warn(
                                 'Detect multiple valid rewriters for'
                                 f'{origin_function}, use the first rewriter.')
-                        else:
-                            final_rewriter = record
-
+                elif default_rewriter is None:
+                    default_rewriter = record
+                else:
+                    warnings.warn(
+                        'Detect multiple valid rewriters for '
+                        f'{origin_function}, use the first rewriter.')
             # Append final rewriter.
             # If there is no valid rewriter, try not apply default rewriter
             if final_rewriter is not None:
@@ -291,7 +276,7 @@ class RewriterRegistry:
         # There may be multiple rewriters of a function/module. We use a list
         # to store the rewriters of a function/module.
         if name not in self._rewrite_records:
-            self._rewrite_records[name] = list()
+            self._rewrite_records[name] = []
         self._rewrite_records[name].append(record_dict)
 
     def register_object(self,
@@ -338,13 +323,12 @@ class RewriterRegistry:
         """
         key_to_pop = []
         for key, records in self._rewrite_records.items():
-            for rec in records:
-                if rec['_object'] == object:
-                    if filter_cb is not None:
-                        if filter_cb(rec):
-                            continue
-                    key_to_pop.append((key, rec))
-
+            key_to_pop.extend(
+                (key, rec)
+                for rec in records
+                if rec['_object'] == object
+                and (filter_cb is None or not filter_cb(rec))
+            )
         for key, rec in key_to_pop:
             records = self._rewrite_records[key]
             records.remove(rec)
@@ -412,12 +396,11 @@ def get_func_qualname(func: Callable) -> str:
     assert isinstance(func, Callable), f'{func} is not a Callable object.'
     _func_name = None
     if hasattr(func, '__qualname__'):
-        _func_name = f'{func.__module__}.{func.__qualname__}'
+        return f'{func.__module__}.{func.__qualname__}'
     elif hasattr(func, '__class__'):
-        _func_name = func.__class__
+        return func.__class__
     else:
-        _func_name = str(func)
-    return _func_name
+        return str(func)
 
 
 def get_frame_func(top: int = 1) -> Callable:
@@ -429,8 +412,7 @@ def get_frame_func(top: int = 1) -> Callable:
     func_name = frameinfo.function
     assert func_name in g_vars, \
         f'Can not find function: {func_name} in global.'
-    func = g_vars[func_name]
-    return func
+    return g_vars[func_name]
 
 
 def get_frame_qualname(top: int = 1) -> str:

@@ -86,8 +86,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Extract transform.')
     parser.add_argument(
         'root_path', help='parent path to codebase(mmdetection for example)')
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def append_info(device, tag):

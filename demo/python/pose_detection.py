@@ -20,8 +20,7 @@ def parse_args():
         nargs='+',
         type=int,
         help='bounding box of an object in format (x, y, w, h)')
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():

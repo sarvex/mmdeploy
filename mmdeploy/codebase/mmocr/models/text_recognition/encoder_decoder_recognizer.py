@@ -30,7 +30,5 @@ def encoder_decoder_recognizer__forward(self, batch_inputs: torch.Tensor,
             (N, H, W).
     """
     feat = self.extract_feat(batch_inputs)
-    out_enc = None
-    if self.with_encoder:
-        out_enc = self.encoder(feat, data_samples)
+    out_enc = self.encoder(feat, data_samples) if self.with_encoder else None
     return self.decoder.predict(feat, out_enc, data_samples)

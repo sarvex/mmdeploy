@@ -14,10 +14,7 @@ def squeeze__default(g, self, dim=None):
     lots of backend.
     """
     if dim is None:
-        dims = []
-        for i, size in enumerate(self.type().sizes()):
-            if size == 1:
-                dims.append(i)
+        dims = [i for i, size in enumerate(self.type().sizes()) if size == 1]
     else:
         dims = [sym_help._get_const(dim, 'i', 'dim')]
 

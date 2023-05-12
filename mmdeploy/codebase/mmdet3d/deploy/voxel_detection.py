@@ -24,14 +24,14 @@ class MMDetection3d(MMCodebase):
     task_registry = MMDET3D_TASK
 
     @classmethod
-    def register_deploy_modules(mmdet3d):
+    def register_deploy_modules(cls):
         import mmdeploy.codebase.mmdet3d.models  # noqa: F401
 
     @classmethod
-    def register_all_modules(mmdet3d):
-        from mmdet3d.utils.setup_env import register_all_modules
+    def register_all_modules(cls):
+        from cls.utils.setup_env import register_all_modules
 
-        mmdet3d.register_deploy_modules()
+        cls.register_deploy_modules()
         register_all_modules(True)
 
 
@@ -114,9 +114,8 @@ class VoxelDetection(BaseTask):
         test_pipeline = deepcopy(cfg.test_dataloader.dataset.pipeline)
         test_pipeline = Compose(test_pipeline)
         box_type_3d, box_mode_3d = \
-            get_box_type(cfg.test_dataloader.dataset.box_type_3d)
+                get_box_type(cfg.test_dataloader.dataset.box_type_3d)
 
-        data = []
         data_ = dict(
             lidar_points=dict(lidar_path=pcd),
             timestamp=1,
@@ -125,8 +124,7 @@ class VoxelDetection(BaseTask):
             box_type_3d=box_type_3d,
             box_mode_3d=box_mode_3d)
         data_ = test_pipeline(data_)
-        data.append(data_)
-
+        data = [data_]
         collate_data = pseudo_collate(data)
         data[0]['inputs']['points'] = data[0]['inputs']['points'].to(
             self.device)
@@ -186,7 +184,7 @@ class VoxelDetection(BaseTask):
         """
         raise NotImplementedError
 
-    def get_partition_cfg(partition_type: str, **kwargs) -> Dict:
+    def get_partition_cfg(self, **kwargs) -> Dict:
         """Get a certain partition config for mmdet.
 
         Args:

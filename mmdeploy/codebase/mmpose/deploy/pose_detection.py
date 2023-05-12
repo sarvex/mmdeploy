@@ -247,7 +247,7 @@ class PoseDetection(BaseTask):
                     'bbox_score': bbox_score,
                     'bbox': bbox[None],  # shape (1, 4)
                 }
-                data.update(meta_data)
+                data |= meta_data
                 data = test_pipeline(data)
                 data['inputs'] = data['inputs'].to(self.device)
                 batch_data['inputs'].append(data['inputs'])
@@ -303,8 +303,7 @@ class PoseDetection(BaseTask):
             str: the name of the model.
         """
         assert 'type' in self.model_cfg.model, 'model config contains no type'
-        name = self.model_cfg.model.type.lower()
-        return name
+        return self.model_cfg.model.type.lower()
 
     @staticmethod
     def get_partition_cfg(partition_type: str, **kwargs) -> Dict:
@@ -323,8 +322,7 @@ class PoseDetection(BaseTask):
         """
         input_shape = get_input_shape(self.deploy_cfg)
         model_cfg = process_model_config(self.model_cfg, [''], input_shape)
-        preprocess = model_cfg.test_dataloader.dataset.pipeline
-        return preprocess
+        return model_cfg.test_dataloader.dataset.pipeline
 
     def get_postprocess(self, *args, **kwargs) -> Dict:
         """Get the postprocess information for SDK."""
@@ -352,5 +350,4 @@ class PoseDetection(BaseTask):
                 component = 'DeepposeRegressionHeadDecode'
             else:
                 raise RuntimeError(f'Unsupported codecs type: {codec.type}')
-        postprocess = dict(params=params, type=component)
-        return postprocess
+        return dict(params=params, type=component)

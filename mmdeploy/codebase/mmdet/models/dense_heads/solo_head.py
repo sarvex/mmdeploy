@@ -79,14 +79,14 @@ def solohead__predict_by_feat__openvino(self,
     mask_preds = mask_preds[keep_inds].unsqueeze(0)
 
     mmdet_params = get_post_processing_params(ctx.cfg)
-    export_postprocess_mask = mmdet_params.get('export_postprocess_mask', True)
-    if export_postprocess_mask:
+    if export_postprocess_mask := mmdet_params.get(
+        'export_postprocess_mask', True
+    ):
         upsampled_size = (featmap_size[0] * 4, featmap_size[1] * 4)
         mask_preds = F.interpolate(
             mask_preds, size=upsampled_size, mode='bilinear')
         bboxes = scores.new_zeros(batch_size, scores.shape[-1], 4)
     else:
-
         bboxes = scores.new_zeros(batch_size, scores.shape[-1], 2)
         # full screen box so we can postprocess mask outside the model
         bboxes = torch.cat([

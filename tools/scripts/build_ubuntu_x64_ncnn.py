@@ -32,20 +32,21 @@ def install_protobuf(dep_dir) -> int:
 
     install_dir = os.path.join(dep_dir, 'pbinstall')
     if os.path.exists(install_dir):
-        os.system('rm -rf {}'.format(install_dir))
+        os.system(f'rm -rf {install_dir}')
 
     os.system('make clean')
-    os.system('./configure --prefix={}'.format(install_dir))
-    os.system('make -j {} && make install'.format(g_jobs))
+    os.system(f'./configure --prefix={install_dir}')
+    os.system(f'make -j {g_jobs} && make install')
     protoc = os.path.join(install_dir, 'bin', 'protoc')
 
-    print('protoc \t:{}'.format(cmd_result('{} --version'.format(protoc))))
+    print(f"protoc \t:{cmd_result(f'{protoc} --version')}")
 
-    os.system(""" echo 'export PATH={}:$PATH' >> ~/mmdeploy.env """.format(
-        os.path.join(install_dir, 'bin')))
     os.system(
-        """ echo 'export LD_LIBRARY_PATH={}:$LD_LIBRARY_PATH' >> ~/mmdeploy.env """  # noqa: E501
-        .format(os.path.join(install_dir, 'lib')))
+        f""" echo 'export PATH={os.path.join(install_dir, 'bin')}:$PATH' >> ~/mmdeploy.env """
+    )
+    os.system(
+        f""" echo 'export LD_LIBRARY_PATH={os.path.join(install_dir, 'lib')}:$LD_LIBRARY_PATH' >> ~/mmdeploy.env """
+    )
 
     return 0
 
@@ -79,12 +80,11 @@ def install_pyncnn(dep_dir):
     pb_lib = os.path.join(pb_install, 'lib', 'libprotobuf.so')
     pb_include = os.path.join(pb_install, 'include')
 
-    cmd = 'cmake .. '
-    cmd += ' -DNCNN_PYTHON=ON '
-    cmd += ' -DProtobuf_LIBRARIES={} '.format(pb_lib)
-    cmd += ' -DProtobuf_PROTOC_EXECUTABLE={} '.format(pb_bin)
-    cmd += ' -DProtobuf_INCLUDE_DIR={} '.format(pb_include)
-    cmd += ' && make -j {} '.format(g_jobs)
+    cmd = 'cmake .. ' + ' -DNCNN_PYTHON=ON '
+    cmd += f' -DProtobuf_LIBRARIES={pb_lib} '
+    cmd += f' -DProtobuf_PROTOC_EXECUTABLE={pb_bin} '
+    cmd += f' -DProtobuf_INCLUDE_DIR={pb_include} '
+    cmd += f' && make -j {g_jobs} '
     cmd += ' && make install '
     os.system(cmd)
 
@@ -94,7 +94,7 @@ def install_pyncnn(dep_dir):
     ncnn_cmake_dir = os.path.join(ncnn_dir, 'build', 'install', 'lib', 'cmake',
                                   'ncnn')
     assert (os.path.exists(ncnn_cmake_dir))
-    print('ncnn cmake dir \t:{}'.format(ncnn_cmake_dir))
+    print(f'ncnn cmake dir \t:{ncnn_cmake_dir}')
     print('\n')
     return ncnn_cmake_dir
 
@@ -117,22 +117,22 @@ def install_mmdeploy(work_dir, dep_dir, ncnn_cmake_dir):
 
     os.system('rm -rf build/CMakeCache.txt')
 
-    cmd = 'cd build && cmake ..'
-    cmd += ' -DMMDEPLOY_BUILD_SDK=ON '
+    cmd = 'cd build && cmake ..' + ' -DMMDEPLOY_BUILD_SDK=ON '
     cmd += ' -DMMDEPLOY_BUILD_EXAMPLES=ON '
     cmd += ' -DMMDEPLOY_BUILD_SDK_PYTHON_API=ON '
     cmd += ' -DMMDEPLOY_TARGET_DEVICES=cpu '
     cmd += ' -DMMDEPLOY_TARGET_BACKENDS=ncnn '
-    cmd += ' -DProtobuf_PROTOC_EXECUTABLE={} '.format(pb_bin)
-    cmd += ' -DProtobuf_LIBRARIES={} '.format(pb_lib)
-    cmd += ' -DProtobuf_INCLUDE_DIR={} '.format(pb_include)
-    cmd += ' -Dncnn_DIR={} '.format(ncnn_cmake_dir)
+    cmd += f' -DProtobuf_PROTOC_EXECUTABLE={pb_bin} '
+    cmd += f' -DProtobuf_LIBRARIES={pb_lib} '
+    cmd += f' -DProtobuf_INCLUDE_DIR={pb_include} '
+    cmd += f' -Dncnn_DIR={ncnn_cmake_dir} '
     os.system(cmd)
 
-    os.system('cd build && make -j {} && make install'.format(g_jobs))
+    os.system(f'cd build && make -j {g_jobs} && make install')
     os.system('python3 -m pip install -v -e .')
-    os.system(""" echo 'export PATH={}:$PATH' >> ~/mmdeploy.env """.format(
-        os.path.join(work_dir, 'mmdeploy', 'backend', 'ncnn')))
+    os.system(
+        f""" echo 'export PATH={os.path.join(work_dir, 'mmdeploy', 'backend', 'ncnn')}:$PATH' >> ~/mmdeploy.env """
+    )
     try:
         import mmcv
         print(mmcv.__version__)
@@ -154,13 +154,13 @@ def main():
     """
     global g_jobs
     g_jobs = get_job(sys.argv)
-    print('g_jobs {}'.format(g_jobs))
+    print(f'g_jobs {g_jobs}')
 
     work_dir = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
     dep_dir = os.path.abspath(os.path.join(work_dir, '..', 'mmdeploy-dep'))
     if not os.path.exists(dep_dir):
         if os.path.isfile(dep_dir):
-            print('{} already exists and it is a file, exit.'.format(work_dir))
+            print(f'{work_dir} already exists and it is a file, exit.')
             return -1
         os.mkdir(dep_dir)
 

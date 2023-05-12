@@ -39,10 +39,9 @@ def backend_checker(backend: Backend, require_plugin: bool = False):
     backend_mgr = get_backend_manager(backend.value)
     result = backend_mgr.is_available(with_custom_ops=require_plugin)
 
-    checker = pytest.mark.skipif(
-        not result, reason=f'{backend.value} package is not available')
-
-    return checker
+    return pytest.mark.skipif(
+        not result, reason=f'{backend.value} package is not available'
+    )
 
 
 def check_backend(backend: Backend, require_plugin: bool = False):
@@ -89,7 +88,7 @@ class WrapFunction(nn.Module):
 
     def forward(self, *args, **kwargs) -> Any:
         """Call the wrapped function."""
-        kwargs.update(self.kwargs)
+        kwargs |= self.kwargs
         return self.wrapped_function(*args, **kwargs)
 
 
@@ -122,7 +121,7 @@ class WrapModel(nn.Module):
 
     def forward(self, *args, **kwargs):
         """Run forward of the model."""
-        kwargs.update(self.kwargs)
+        kwargs |= self.kwargs
         func = getattr(self.model, self.func_name)
         return func(*args, **kwargs)
 
@@ -258,8 +257,7 @@ def get_model_outputs(model: nn.Module, func_name: str,
     """
     assert hasattr(model, func_name), f'Got unexpected func name: {func_name}'
     func = getattr(model, func_name)
-    model_outputs = func(**model_inputs)
-    return model_outputs
+    return func(**model_inputs)
 
 
 def get_flatten_inputs(
@@ -412,7 +410,7 @@ def get_backend_outputs(ir_file_path: str,
         model_inputs = flatten_model_inputs
     if backend == Backend.TENSORRT:
         device = 'cuda'
-        model_inputs = dict((k, v.cuda()) for k, v in model_inputs.items())
+        model_inputs = {k: v.cuda() for k, v in model_inputs.items()}
     elif backend == Backend.OPENVINO:
         input_info = {
             name: value.shape

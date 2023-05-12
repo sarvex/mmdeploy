@@ -16,8 +16,8 @@ def gap__forward(self, inputs):
     Shape->Gather->Unsqueeze->Concat->Reshape become a Flatten.
     """
     if isinstance(inputs, tuple):
-        outs = tuple([self.gap(x) for x in inputs])
-        outs = tuple([out.flatten(1) for out in outs])
+        outs = tuple(self.gap(x) for x in inputs)
+        outs = tuple(out.flatten(1) for out in outs)
     elif isinstance(inputs, torch.Tensor):
         outs = self.gap(inputs)
         outs = outs.flatten(1)

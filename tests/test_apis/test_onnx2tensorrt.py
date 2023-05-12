@@ -29,21 +29,27 @@ test_model = TestModel().eval().cuda()
 
 
 def get_deploy_cfg():
-    deploy_cfg = Config(
+    return Config(
         dict(
             backend_config=dict(
                 type='tensorrt',
                 common_config=dict(
-                    fp16_mode=False, max_workspace_size=1 << 30),
+                    fp16_mode=False, max_workspace_size=1 << 30
+                ),
                 model_inputs=[
                     dict(
                         input_shapes=dict(
                             input=dict(
                                 min_shape=[1, 3, 8, 8],
                                 opt_shape=[1, 3, 8, 8],
-                                max_shape=[1, 3, 8, 8])))
-                ])))
-    return deploy_cfg
+                                max_shape=[1, 3, 8, 8],
+                            )
+                        )
+                    )
+                ],
+            )
+        )
+    )
 
 
 def generate_onnx_file(model):

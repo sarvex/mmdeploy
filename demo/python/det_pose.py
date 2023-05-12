@@ -17,8 +17,7 @@ def parse_args():
         'pose_model_path',
         help='path of mmdeploy SDK model dumped by model converter')
     parser.add_argument('image_path', help='path of input image')
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def visualize(frame, keypoints, filename, thr=0.5, resize=1280):

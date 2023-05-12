@@ -58,12 +58,11 @@ class TensorRTManager(BaseBackendManager):
         """Get the version of the backend."""
         if not cls.is_available():
             return 'None'
-        else:
-            import pkg_resources
-            try:
-                return pkg_resources.get_distribution('tensorrt').version
-            except Exception:
-                return 'None'
+        import pkg_resources
+        try:
+            return pkg_resources.get_distribution('tensorrt').version
+        except Exception:
+            return 'None'
 
     @classmethod
     def check_env(cls, log_callback: Callable = lambda _: _) -> str:
@@ -120,10 +119,10 @@ class TensorRTManager(BaseBackendManager):
         for model_id, model_param, onnx_path in zip(
                 range(len(ir_files)), model_params, ir_files):
             onnx_name = osp.splitext(osp.split(onnx_path)[1])[0]
-            save_file = model_param.get('save_file', onnx_name + '.engine')
+            save_file = model_param.get('save_file', f'{onnx_name}.engine')
 
             partition_type = 'end2end' if partition_cfgs is None \
-                else onnx_name
+                    else onnx_name
             onnx2tensorrt(
                 work_dir,
                 save_file,

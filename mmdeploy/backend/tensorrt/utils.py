@@ -37,14 +37,13 @@ def load(path: str, allocator: Optional[Any] = None) -> trt.ICudaEngine:
         tensorrt.ICudaEngine: The TensorRT engine loaded from disk.
     """
     load_tensorrt_plugin()
-    with trt.Logger() as logger, trt.Runtime(logger) as runtime:
+    with (trt.Logger() as logger, trt.Runtime(logger) as runtime):
         if allocator is not None:
             runtime.gpu_allocator = allocator
         with open(path, mode='rb') as f:
             engine_bytes = f.read()
         trt.init_libnvinfer_plugins(logger, namespace='')
-        engine = runtime.deserialize_cuda_engine(engine_bytes)
-        return engine
+        return runtime.deserialize_cuda_engine(engine_bytes)
 
 
 def search_cuda_version() -> str:
@@ -62,7 +61,7 @@ def search_cuda_version() -> str:
         cmd = os.popen(txt)
         return cmd.read().rstrip().lstrip()
 
-    if platform == 'linux' or platform == 'darwin' or platform == 'freebsd':  # noqa E501
+    if platform in ['linux', 'darwin', 'freebsd']:  # noqa E501
         version = cmd_result(
             " nvcc --version | grep  release | awk '{print $5}' | awk -F , '{print $1}' "  # noqa E501
         )
@@ -70,7 +69,7 @@ def search_cuda_version() -> str:
             version = cmd_result(
                 " nvidia-smi  | grep CUDA | awk '{print $9}' ")
 
-    elif platform == 'win32' or platform == 'cygwin':
+    elif platform in ['win32', 'cygwin']:
         # nvcc_release = "Cuda compilation tools, release 10.2, V10.2.89"
         nvcc_release = cmd_result(' nvcc --version | find "release" ')
         if nvcc_release is not None:
@@ -179,9 +178,10 @@ def from_onnx(onnx_model: Union[str, onnx.ModelProto],
         raise TypeError('Unsupported onnx model type!')
 
     if not parse_valid:
-        error_msgs = ''
-        for error in range(parser.num_errors):
-            error_msgs += f'{parser.get_error(error)}\n'
+        error_msgs = ''.join(
+            f'{parser.get_error(error)}\n'
+            for error in range(parser.num_errors)
+        )
         raise RuntimeError(f'Failed to parse onnx, {error_msgs}')
 
     # config builder
@@ -247,7 +247,7 @@ def from_onnx(onnx_model: Union[str, onnx.ModelProto],
 
     assert engine is not None, 'Failed to create TensorRT engine'
 
-    save(engine, output_file_prefix + '.engine')
+    save(engine, f'{output_file_prefix}.engine')
     return engine
 
 

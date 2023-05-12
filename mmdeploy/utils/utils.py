@@ -57,10 +57,7 @@ def get_root_logger(log_file=None, log_level=logging.INFO) -> logging.Logger:
     Returns:
         logging.Logger: The obtained logger
     """
-    logger = get_logger(
-        name='mmdeploy', log_file=log_file, log_level=log_level)
-
-    return logger
+    return get_logger(name='mmdeploy', log_file=log_file, log_level=log_level)
 
 
 def deprecate(status: str = 'future',
@@ -121,8 +118,6 @@ def get_file_path(prefix, candidates) -> str:
     """
     for candidate in candidates:
         wildcard = os.path.abspath(os.path.join(prefix, candidate))
-        paths = glob.glob(wildcard)
-        if paths:
-            lib_path = paths[0]
-            return lib_path
+        if paths := glob.glob(wildcard):
+            return paths[0]
     return ''

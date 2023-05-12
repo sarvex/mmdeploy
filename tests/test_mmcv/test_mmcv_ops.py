@@ -171,8 +171,9 @@ def test_multiclass_nms_static():
         },
         deploy_cfg=deploy_cfg)
 
-    assert rewrite_outputs is not None, 'Got unexpected rewrite '\
-        'outputs: {}'.format(rewrite_outputs)
+    assert (
+        rewrite_outputs is not None
+    ), f'Got unexpected rewrite outputs: {rewrite_outputs}'
 
 
 @backend_checker(Backend.ASCEND)
@@ -219,8 +220,9 @@ def test_multiclass_nms__ascend():
         },
         deploy_cfg=deploy_cfg)
 
-    assert rewrite_outputs is not None, 'Got unexpected rewrite '\
-        'outputs: {}'.format(rewrite_outputs)
+    assert (
+        rewrite_outputs is not None
+    ), f'Got unexpected rewrite outputs: {rewrite_outputs}'
 
 
 def test_modulated_deform_conv():

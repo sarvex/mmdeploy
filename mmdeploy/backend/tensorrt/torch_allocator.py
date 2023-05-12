@@ -38,7 +38,7 @@ class TorchAllocator(trt.IGpuAllocator):
         logger.debug(f'allocate {size} memory with TorchAllocator.')
         assert alignment >= 0
         if alignment > 0:
-            size = size | (alignment - 1) + 1
+            size |= (alignment - 1) + 1
         mem = torch.cuda.caching_allocator_alloc(
             size, device=self.device_id, stream=torch_stream)
         self.mems.add(mem)

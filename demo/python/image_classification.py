@@ -13,8 +13,7 @@ def parse_args():
         'model_path',
         help='path of mmdeploy SDK model dumped by model converter')
     parser.add_argument('image_path', help='path of an image')
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():

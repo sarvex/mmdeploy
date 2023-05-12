@@ -63,6 +63,4 @@ def simple_roialign__forward(self, features, rois):
     point_feats = point_feats.transpose(1, 2)
 
     channels = features.size(1)
-    roi_feats = point_feats.reshape(num_rois, channels, *self.output_size)
-
-    return roi_feats
+    return point_feats.reshape(num_rois, channels, *self.output_size)

@@ -65,7 +65,7 @@ class RKNNWrapper(BaseWrapper):
         if self.input_names is not None:
             rknn_inputs = [inputs[name] for name in self.input_names]
         else:
-            rknn_inputs = [i for i in inputs.values()]
+            rknn_inputs = list(inputs.values())
         rknn_inputs = [
             i.permute(0, 2, 3, 1).cpu().numpy() for i in rknn_inputs
         ]
@@ -73,7 +73,7 @@ class RKNNWrapper(BaseWrapper):
         rknn_out = [torch.from_numpy(out) for out in rknn_out]
         if self.output_names is not None:
             return dict(zip(self.output_names, rknn_out))
-        return {'#' + str(i): x for i, x in enumerate(rknn_out)}
+        return {f'#{str(i)}': x for i, x in enumerate(rknn_out)}
 
     @TimeCounter.count_time(Backend.RKNN.value)
     def __rknnnn_execute(self, inputs: Sequence[np.array]):

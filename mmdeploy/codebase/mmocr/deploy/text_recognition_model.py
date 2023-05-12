@@ -46,8 +46,8 @@ class End2EndModel(BaseBackendModel):
         decoder = model_cfg.model.decoder
         assert decoder is not None, 'model_cfg contains no label '
         'decoder'
-        max_seq_len = 40  # default value in EncodeDecodeRecognizer of mmocr
         if decoder.get('max_seq_len', None) is None:
+            max_seq_len = 40  # default value in EncodeDecodeRecognizer of mmocr
             decoder.update(max_seq_len=max_seq_len)
         self.dictionary = TASK_UTILS.build(model_cfg.dictionary)
         if decoder.get('dictionary', None) is None:
@@ -103,8 +103,7 @@ class End2EndModel(BaseBackendModel):
         Returns:
             list[str]: Text label result of each image.
         """
-        pred = self.wrapper({self.input_name: imgs})['output']
-        return pred
+        return self.wrapper({self.input_name: imgs})['output']
 
 
 @__BACKEND_MODEL.register_module('sdk')

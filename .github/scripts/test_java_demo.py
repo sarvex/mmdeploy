@@ -78,10 +78,9 @@ def main():
         java_command = '\"cpu'
         for config in configs:
             model_url = config
-            os.system('wget {} && tar xvf {}'.format(model_url,
-                                                     model_url.split('/')[-1]))
+            os.system(f"wget {model_url} && tar xvf {model_url.split('/')[-1]}")
             model_dir = model_url.split('/')[-1].split('.')[0]
-            java_command += (' ' + model_dir)
+            java_command += f' {model_dir}'
         if task in [
                 'ImageClassification', 'ObjectDetection', 'ImageSegmentation',
                 'ImageRestorer', 'PoseDetection', 'RotatedDetection'
@@ -99,10 +98,21 @@ def main():
         else:
             java_command += '\"'
         print(f'java_command: {java_command}')
-        os.system('ant -DtaskName=' + task +
-                  ' -DjarDir=${OPENCV_DIR}/build/bin ' +
-                  '-DlibDir=${OPENCV_DIR}/build/lib:$GITHUB_WORKSPACE/' +
-                  'build/lib -Dcommand=' + java_command)
+        os.system(
+            (
+                (
+                    (
+                        (
+                            f'ant -DtaskName={task}'
+                            + ' -DjarDir=${OPENCV_DIR}/build/bin '
+                        )
+                        + '-DlibDir=${OPENCV_DIR}/build/lib:$GITHUB_WORKSPACE/'
+                    )
+                    + 'build/lib -Dcommand='
+                )
+                + java_command
+            )
+        )
 
 
 if __name__ == '__main__':

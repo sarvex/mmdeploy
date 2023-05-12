@@ -15,10 +15,9 @@ def crnndecoder__forward_train__ncnn(self, feat, *args, **kwargs):
     if self.rnn_flag:
         x = feat.squeeze(2)  # [N, C, W]
         x = x.permute(0, 2, 1)  # [N, W, C]
-        outputs = self.decoder(x)
+        return self.decoder(x)
     else:
         x = self.decoder(feat)
         x = x.permute(0, 3, 1, 2).contiguous()
         n, w, c, h = x.size()
-        outputs = x.view(n, w, c * h)
-    return outputs
+        return x.view(n, w, c * h)

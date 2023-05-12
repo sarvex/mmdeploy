@@ -96,11 +96,10 @@ class ORTWrapper(BaseWrapper):
             torch.cuda.synchronize()
         self.__ort_execute(self.io_binding)
         output_list = self.io_binding.copy_outputs_to_cpu()
-        outputs = {}
-        for output_name, numpy_tensor in zip(self._output_names, output_list):
-            outputs[output_name] = torch.from_numpy(numpy_tensor)
-
-        return outputs
+        return {
+            output_name: torch.from_numpy(numpy_tensor)
+            for output_name, numpy_tensor in zip(self._output_names, output_list)
+        }
 
     @TimeCounter.count_time(Backend.ONNXRUNTIME.value)
     def __ort_execute(self, io_binding: ort.IOBinding):

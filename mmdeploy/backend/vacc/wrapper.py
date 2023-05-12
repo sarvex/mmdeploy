@@ -92,9 +92,9 @@ class VACCForward:
         return input_id
 
     def get_output_num(self):
-        num_outputs = self.vast_stream.get_output_num_per_batch(
-            self.vast_stream.model_name)
-        return num_outputs
+        return self.vast_stream.get_output_num_per_batch(
+            self.vast_stream.model_name
+        )
 
     def extract(self, image: Union[str, np.ndarray]) -> str:
         input_id = self.__start_extract(image)
@@ -203,7 +203,7 @@ class VACCWrapper(BaseWrapper):
         for batch_id in range(batch_size):
             output = []
             # set inputs
-            for name, input_tensor in inputs.items():
+            for input_tensor in inputs.values():
                 data = input_tensor[batch_id].contiguous()
                 data = data.detach().cpu().numpy()
                 results = self.model.extract_batch([data])
@@ -216,13 +216,12 @@ class VACCWrapper(BaseWrapper):
                                 result[1][0])[0])
                     else:
                         outputs_ = []
-                        outputs = {}
                         for index in range(output_num):
                             out = np.reshape(
                                 result[2][index].astype(np.float32),
                                 result[1][index])
                             outputs_.append(torch.from_numpy(out))
-                        outputs['output'] = outputs_
+                        outputs = {'output': outputs_}
                         return outputs
             output = np.array(output)
             for name in self.output_names:

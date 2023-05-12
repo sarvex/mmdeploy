@@ -66,7 +66,7 @@ def gv_ratio_roi_head__predict_bbox(self,
                                   fix_preds.size(-1))
     ratio_preds = ratio_preds.reshape(batch_size, num_proposals_per_img,
                                       ratio_preds.size(-1))
-    result_list = self.bbox_head.predict_by_feat(
+    return self.bbox_head.predict_by_feat(
         rois=rois,
         cls_scores=cls_scores,
         bbox_preds=bbox_preds,
@@ -74,5 +74,5 @@ def gv_ratio_roi_head__predict_bbox(self,
         ratio_preds=ratio_preds,
         batch_img_metas=batch_img_metas,
         rcnn_test_cfg=rcnn_test_cfg,
-        rescale=rescale)
-    return result_list
+        rescale=rescale,
+    )

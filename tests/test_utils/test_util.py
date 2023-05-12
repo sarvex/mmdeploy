@@ -58,17 +58,14 @@ class TestLoadConfig:
     def test_load_config(self, args):
         configs = util.load_config(*args)
         for v in zip(configs, args):
-            if isinstance(v[1], str):
-                cfg = Config.fromfile(v[1])
-            else:
-                cfg = v[1]
+            cfg = Config.fromfile(v[1]) if isinstance(v[1], str) else v[1]
             assert v[0]._cfg_dict == cfg._cfg_dict
 
 
 class TestGetCodebaseConfig:
 
     def test_get_codebase_config_empty(self):
-        assert util.get_codebase_config(Config(dict())) == {}
+        assert util.get_codebase_config(Config({})) == {}
 
     def test_get_codebase_config(self):
         codebase_config = util.get_codebase_config(correct_deploy_path)
@@ -79,7 +76,7 @@ class TestGetTaskType:
 
     def test_get_task_type_none(self):
         with pytest.raises(AssertionError):
-            util.get_task_type(Config(dict()))
+            util.get_task_type(Config({}))
 
     def test_get_task_type(self):
         assert util.get_task_type(correct_deploy_path) == Task.SUPER_RESOLUTION
@@ -89,7 +86,7 @@ class TestGetCodebase:
 
     def test_get_codebase_none(self):
         with pytest.raises(AssertionError):
-            util.get_codebase(Config(dict()))
+            util.get_codebase(Config({}))
 
     def test_get_codebase(self):
         assert util.get_codebase(correct_deploy_path) == Codebase.MMEDIT
@@ -98,7 +95,7 @@ class TestGetCodebase:
 class TestGetBackendConfig:
 
     def test_get_backend_config_empty(self):
-        assert util.get_backend_config(Config(dict())) == {}
+        assert util.get_backend_config(Config({})) == {}
 
     def test_get_backend_config(self):
         backend_config = util.get_backend_config(correct_deploy_path)
@@ -108,23 +105,24 @@ class TestGetBackendConfig:
 class TestGetCodebaseExternalModule:
 
     def test_get_codebase_external_module_empty(self):
-        assert get_codebase_external_module(Config(dict())) == []
+        assert get_codebase_external_module(Config({})) == []
 
     def test_get_codebase_external_module(self):
         external_deploy_cfg = dict(
-            onnx_config=dict(),
+            onnx_config={},
             codebase_config=dict(module=['mmyolo.deploy.mmyolo']),
-            backend_config=dict(type='onnxruntime'))
+            backend_config=dict(type='onnxruntime'),
+        )
         custom_module_list = get_codebase_external_module(external_deploy_cfg)
         assert isinstance(custom_module_list, list) \
-            and len(custom_module_list) == 1
+                and len(custom_module_list) == 1
 
 
 class TestGetBackend:
 
     def test_get_backend_none(self):
         with pytest.raises(AssertionError):
-            util.get_backend(Config(dict()))
+            util.get_backend(Config({}))
 
     def test_get_backend(self):
         assert util.get_backend(correct_deploy_path) == Backend.ONNXRUNTIME
@@ -133,7 +131,7 @@ class TestGetBackend:
 class TestGetOnnxConfig:
 
     def test_get_onnx_config_empty(self):
-        assert util.get_onnx_config(Config(dict())) == {}
+        assert util.get_onnx_config(Config({})) == {}
 
     def test_get_onnx_config(self):
         onnx_config = dict(
@@ -264,7 +262,7 @@ class TestCfgApplyMark:
     config_with_mask = Config(dict(partition_config=dict(apply_marks=True)))
 
     def test_cfg_apply_marks_none(self):
-        assert util.cfg_apply_marks(Config(dict())) is None
+        assert util.cfg_apply_marks(Config({})) is None
 
     def test_cfg_apply_marks(self):
         assert util.cfg_apply_marks(TestCfgApplyMark.config_with_mask) is True
@@ -277,7 +275,7 @@ class TestGetPartitionConfig:
         dict(partition_config=dict(apply_marks=False)))
 
     def test_get_partition_config_none(self):
-        assert util.get_partition_config(Config(dict())) is None
+        assert util.get_partition_config(Config({})) is None
 
     def test_get_partition_config_without_mask(self):
         assert util.get_partition_config(
@@ -301,7 +299,7 @@ class TestGetCalib:
             create_calib=True, calib_file='calib_data.h5')
 
     def test_get_calib_filename_none(self):
-        assert util.get_calib_filename(Config(dict())) is None
+        assert util.get_calib_filename(Config({})) is None
 
     def test_get_calib_filename_false(self):
         assert util.get_calib_filename(

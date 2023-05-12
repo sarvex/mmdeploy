@@ -31,18 +31,15 @@ def get_table(onnx_path: str,
         from quant_image_dataset import QuantizationImageDataset
         dataset = QuantizationImageDataset(
             path=image_dir, deploy_cfg=deploy_cfg, model_cfg=model_cfg)
-        calib_dataloader['dataset'] = dataset
-        dataloader = task_processor.build_dataloader(calib_dataloader)
-        # dataloader = DataLoader(dataset, batch_size=1)
+            # dataloader = DataLoader(dataset, batch_size=1)
     else:
         dataset = task_processor.build_dataset(calib_dataloader['dataset'])
-        calib_dataloader['dataset'] = dataset
-        dataloader = task_processor.build_dataloader(calib_dataloader)
-
+    calib_dataloader['dataset'] = dataset
+    dataloader = task_processor.build_dataloader(calib_dataloader)
     data_preprocessor = task_processor.build_data_preprocessor()
 
     # get an available input shape randomly
-    for _, input_data in enumerate(dataloader):
+    for input_data in dataloader:
         input_data = data_preprocessor(input_data)
         input_tensor = input_data[0]
         if isinstance(input_tensor, list):
@@ -102,9 +99,7 @@ def parse_args():
         help='set log level',
         default='INFO',
         choices=list(logging._nameToLevel.keys()))
-    args = parser.parse_args()
-
-    return args
+    return parser.parse_args()
 
 
 def main():

@@ -29,18 +29,22 @@ def normalize__ncnn(input: torch.Tensor,
     assert input.shape[0] == 1, \
         f'only support batch size 1, but given {input.shape[0]}'
     if input.ndim == 3:
-        output = origin_func(
-            input.transpose(1, dim).unsqueeze(2), p=p, dim=1,
-            eps=eps).squeeze(2).transpose(1, dim)
+        return (
+            origin_func(
+                input.transpose(1, dim).unsqueeze(2), p=p, dim=1, eps=eps
+            )
+            .squeeze(2)
+            .transpose(1, dim)
+        )
     else:
         # input.ndim == 4:
-        if dim == 1:
-            output = origin_func(input, p=p, dim=dim, eps=eps)
-        else:
-            output = origin_func(
-                input.transpose(1, dim), p=p, dim=1,
-                eps=eps).transpose(1, dim)
-    return output
+        return (
+            origin_func(input, p=p, dim=dim, eps=eps)
+            if dim == 1
+            else origin_func(
+                input.transpose(1, dim), p=p, dim=1, eps=eps
+            ).transpose(1, dim)
+        )
 
 
 @FUNCTION_REWRITER.register_rewriter(func_name='torch.norm', backend='ncnn')

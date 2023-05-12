@@ -58,9 +58,7 @@ class RKNNManager(BaseBackendManager):
     @classmethod
     def get_version(cls) -> str:
         """Get the version of the backend."""
-        if not cls.is_available():
-            return 'None'
-        else:
+        if cls.is_available():
             import pkg_resources
             rknn_version = None
             rknn2_version = None
@@ -78,7 +76,7 @@ class RKNNManager(BaseBackendManager):
                 return rknn2_version
             elif rknn_version is not None:
                 return rknn_version
-            return 'None'
+        return 'None'
 
     @classmethod
     def check_env(cls, log_callback: Callable = lambda _: _) -> str:
@@ -143,7 +141,7 @@ class RKNNManager(BaseBackendManager):
         backend_files = []
         for model_id, onnx_path in zip(range(len(ir_files)), ir_files):
             pre_fix_name = osp.splitext(osp.split(onnx_path)[1])[0]
-            output_path = osp.join(work_dir, pre_fix_name + '.rknn')
+            output_path = osp.join(work_dir, f'{pre_fix_name}.rknn')
             onnx2rknn(onnx_path, output_path, deploy_cfg)
             backend_files.append(output_path)
 

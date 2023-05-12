@@ -76,12 +76,11 @@ class NCNNManager(BaseBackendManager):
         """Get the version of the backend."""
         if not cls.is_available():
             return 'None'
-        else:
-            import pkg_resources
-            try:
-                return pkg_resources.get_distribution('ncnn').version
-            except Exception:
-                return 'None'
+        import pkg_resources
+        try:
+            return pkg_resources.get_distribution('ncnn').version
+        except Exception:
+            return 'None'
 
     @classmethod
     def check_env(cls, log_callback: Callable = lambda _: _) -> str:
